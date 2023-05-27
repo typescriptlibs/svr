@@ -1,0 +1,42 @@
+{
+    "private": true,
+    "author": "TypeScriptLibs and Contributers",
+    "description": "Simple HTTP(S) Server",
+    "license": "MIT",
+    "name": "@typescriptlibs/svr",
+    "type": "module",
+    "version": "0.0.1",
+    "bin": "bin/svr.mjs",
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "bugs": "https://github.com/typescriptlibs/svr/issues",
+    "homepage": "https://typescriptlibs.org/svr/",
+    "repository": "https://github.com/typescriptlibs/svr.git",
+    "devDependencies": {
+        "@types/node": "~18.0.4",
+        "husky": "~8.0.3",
+        "typescript": "~5.0.4"
+    },
+    "engines": {
+        "node": ">=18.4.1"
+    },
+    "files": [
+        "bin/",
+        "lib/",
+        "AUTHORS.md",
+        "LICENSE.md",
+        "README.md"
+    ],
+    "keywords": [
+        "HTTP",
+        "HTTPS",
+        "Server",
+        "TypeScript"
+    ],
+    "scripts": {
+        "build": "npm run clean && tsc -p src/tsconfig.json",
+        "clean": "rm -rf lib/ tst-run/",
+        "test": "npm run build && node bin/svr.mjs --timeout=10",
+        "watch": "npm run build -- --watch"
+    }
+}
