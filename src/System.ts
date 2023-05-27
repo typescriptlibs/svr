@@ -10,11 +10,13 @@
 
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
 
+
 /* *
  *
  *  Imports
  *
  * */
+
 
 import * as ChildProcess from 'node:child_process';
 
@@ -26,11 +28,13 @@ import * as Path from 'node:path';
 
 import * as URL from 'node:url';
 
+
 /* *
  *
  *  Constants
  *
  * */
+
 
 const CWD = process.cwd();
 
@@ -40,11 +44,58 @@ const PATH = joinPath( folderName( pathFromURL( import.meta.url ) ), '..' );
 
 const VERSION = extractPackageVersion();
 
+
 /* *
  *
  *  Functions
  *
  * */
+
+
+function args (
+    argv: Array<string>
+): Record<string, ( boolean | string | Array<string> )> {
+    const args: Record<string, ( boolean | string | Array<string> )> = {};
+
+    for (
+        let i = 0,
+        iEnd = argv.length,
+        key: ( string | undefined ),
+        value: string;
+        i < iEnd;
+        ++i
+    ) {
+        value = argv[i];
+
+        if ( value[0] === '-' ) {
+            key = value.substring( value.startsWith( '--' ) ? 2 : 1 ) || '_';
+
+            if ( typeof args[key] === 'undefined' ) {
+                args[key] = true;
+            }
+
+            continue;
+        }
+
+        if ( !key ) {
+            key = '_';
+        }
+
+        switch ( typeof args[key] ) {
+            case 'object':
+                ( args[key] as Array<string> ).push( value );
+                continue;
+            case 'string':
+                args[key] = [args[key] as string, value];
+                continue;
+            default:
+                args[key] = value;
+        }
+    }
+
+    return args;
+}
+
 
 function deleteFolder (
     path: string
@@ -63,11 +114,13 @@ function deleteFolder (
     }
 }
 
+
 function exec (
     command: string
 ): string {
     return ChildProcess.execSync( command, { encoding: 'utf8', timeout: 60000 } );
 }
+
 
 function extractPackageVersion (
     packagePath: string = joinPath( PATH, 'package.json' )
@@ -77,6 +130,7 @@ function extractPackageVersion (
     return ( packageJSON?.version || '0.0.0' );
 }
 
+
 function fileExists (
     filePath: string
 ): boolean {
@@ -85,6 +139,7 @@ function fileExists (
         FS.lstatSync( filePath ).isFile()
     );
 }
+
 
 function filesFrom (
     folderPath: string,
@@ -123,6 +178,7 @@ function filesFrom (
     return files;
 }
 
+
 function folderExists (
     folderPath: string
 ): boolean {
@@ -132,11 +188,13 @@ function folderExists (
     );
 }
 
+
 function folderName (
     path: string
 ): string {
     return Path.dirname( path );
 }
+
 
 function foldersFrom (
     folderPath: string,
@@ -173,11 +231,13 @@ function foldersFrom (
     return folders;
 }
 
+
 function joinPath (
     ...paths: Array<string>
 ): string {
     return Path.join( ...paths );
 }
+
 
 function pathFromURL (
     fileURL: string
@@ -185,17 +245,20 @@ function pathFromURL (
     return URL.fileURLToPath( fileURL );
 }
 
+
 /* *
  *
  *  Default Export
  *
  * */
 
+
 export const System = {
     CWD,
     EOL,
     PATH,
     VERSION,
+    args,
     deleteFolder,
     exec,
     extractPackageVersion,

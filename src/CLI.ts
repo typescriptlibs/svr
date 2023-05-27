@@ -18,11 +18,52 @@
  * */
 
 
-import * as Path from 'node:path';
-
 import Server from './Server.js';
 
 import System from './System.js';
+
+
+/* *
+ *
+ *  Constants
+ *
+ * */
+
+
+export const VERSION = `Version ${System.extractPackageVersion()}`;
+
+export const HELP = [
+    `SVR: Simple HTTP(S) Server - ${VERSION}`,
+    '',
+    `svr [options]`,
+    '',
+    'OPTIONS:',
+    '',
+    '  --cert [file]        File path to the HTTPS certificate.',
+    '',
+    '  --certKey [file]     File path to the HTTPS certificate key.',
+    '',
+    '  --cgi [path]         Activate CGI path in the root folder.',
+    '',
+    '  --help, -h           Prints this help text.',
+    '',
+    '  --http [port]        Activate HTTP port.',
+    '                       (Default: random number >= 1000)',
+    '',
+    '  --https [port]       Activate HTTPS port.',
+    '',
+    '  --root [folder]      Root folder with files for web browsers.',
+    '                       (Default: "./")',
+    '',
+    '  --timeout [seconds]  Stops the server after the given amount of seconds.',
+    '',
+    '  --version, -v        Prints the version string.',
+    '',
+    'EXAMPLES:',
+    '',
+    '  svr --root html/',
+    '  Starts the server and delivers files in the "html" folder to web browsers.',
+];
 
 
 /* *
@@ -37,6 +78,20 @@ export class CLI {
 
     /* *
      *
+     *  Static Functions
+     *
+     * */
+
+
+    public static async run (
+        argv: Array<string>
+    ): Promise<void> {
+        return new CLI( argv, System ).run();
+    }
+
+
+    /* *
+     *
      *  Constructor
      *
      * */
@@ -46,16 +101,13 @@ export class CLI {
         argv: Array<string>,
         system: typeof System
     ) {
-        this.argv = argv;
-        this.source = argv[argv.length - 1];
+        this.args = System.args( argv );
+        this.rootPath = (
+            typeof this.args.root === 'string' ?
+                this.args.root :
+                './'
+        );
         this.system = system;
-
-        if (
-            this.source.startsWith( '-' ) ||
-            this.source.endsWith( 'svr.mjs' )
-        ) {
-            this.source = './';
-        }
     }
 
 
@@ -66,9 +118,9 @@ export class CLI {
      * */
 
 
-    public readonly argv: Array<string>;
+    public readonly args: Record<string, ( boolean | string | Array<string> )>;
 
-    public readonly source: string;
+    public readonly rootPath: string;
 
     public readonly system: typeof System;
 
@@ -81,107 +133,39 @@ export class CLI {
 
 
     public async run (): Promise<void> {
-        const argv = this.argv;
+        const args = this.args;
         const system = this.system;
 
-        if (
-            argv.includes( '-h' ) ||
-            argv.includes( '--help' )
-        ) {
-            console.info( CLI.HELP.join( system.EOL ) );
+        if ( args.help || args.h ) {
+            console.info( HELP.join( system.EOL ) );
             return;
         }
 
-        if (
-            argv.includes( '-v' ) ||
-            argv.includes( '--version' )
-        ) {
-            console.info( CLI.VERSION );
+        if ( args.version || args.v ) {
+            console.info( VERSION );
             return;
         }
 
-        let source = this.source;
+        console.log( args );
 
-        if ( !system.folderExists( source ) ) {
-            throw new Error( `Folder not found. (${source})` );
+        let rootPath = this.rootPath;
+
+        if ( !system.folderExists( rootPath ) ) {
+            throw new Error( `Folder not found. (${rootPath})` );
         }
 
         const server = new Server();
 
+        server.start();
     }
 }
 
-/* *
- *
- *  Class Namespace
- *
- * */
-
-export namespace CLI {
-
-    /* *
-     *
-     *  Declarations
-     *
-     * */
-
-    export interface Args extends Partial<Record<string, ( boolean | string )>> {
-        help?: boolean;
-        source?: string;
-        version?: boolean;
-    }
-
-    /* *
-     *
-     *  Constants
-     *
-     * */
-
-    export const VERSION = `Version ${System.extractPackageVersion()}`;
-
-    export const HELP = [
-        `SVR: Simple HTTP(S) Server - ${VERSION}`,
-        '',
-        `svr [options] [source]`,
-        '',
-        'ARGUMENTS:',
-        '',
-        '  [options]  Optional flags explained in the section below.',
-        '',
-        '  [source]   File folder for web browsers.',
-        '',
-        'OPTIONS:',
-        '',
-        '  --help, -h     Prints this help text.',
-        '',
-        '  --timeout, -t  Stops the server after the give time in seconds.',
-        '',
-        '  --version, -v  Prints the version string.',
-        '',
-        'EXAMPLES:',
-        '',
-        '  svr html/',
-        '  Starts the server and delivers files in the "html" folder to web browsers.',
-    ];
-
-    /* *
-     *
-     *  Functions
-     *
-     * */
-
-    export async function run (
-        argv: Array<string>
-    ): Promise<void> {
-        return new CLI( argv, System ).run();
-    }
-
-}
 
 /* *
  *
  *  Default Export
  *
  * */
+
 
 export default CLI;
