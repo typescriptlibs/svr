@@ -18,6 +18,8 @@
  * */
 
 
+import CGIHandler from './CGIHandler.js';
+
 import ErrorHandler from './ErrorHandler.js';
 
 import FileHandler from './FileHandler.js';
@@ -89,6 +91,10 @@ export class Server {
         this.errorHandler = new ErrorHandler( this );
         this.fileHandler = new FileHandler( this );
 
+        if ( options.cgiPath ) {
+            this.cgiHandler = new CGIHandler( this );
+        }
+
         if ( options.typeScript ) {
             this.typeScriptHandler = new TypeScriptHandler( this );
         }
@@ -102,7 +108,7 @@ export class Server {
      * */
 
 
-    public readonly cgiHandler?: unknown;
+    public readonly cgiHandler?: CGIHandler;
 
     public readonly errorHandler: ErrorHandler;
 
@@ -134,30 +140,37 @@ export class Server {
             ( request, response ) => {
                 const url = new URL( ( request.url || '' ), `${protocol}://${request.headers.host}` );
 
-                if (
-                    this.cgiHandler &&
-                    !response.headersSent
-                ) {
-                    // @todo
-                    this.errorHandler.handleRequest( url, request, response, 500 );
-                }
+                try {
+                    if (
+                        this.cgiHandler &&
+                        !response.headersSent
+                    ) {
+                        this.cgiHandler.handleRequest( url, request, response );
+                    }
 
-                if (
-                    this.typeScriptHandler &&
-                    !response.headersSent
-                ) {
-                    this.typeScriptHandler.handleRequest( url, request, response );
-                }
+                    if (
+                        this.typeScriptHandler &&
+                        !response.headersSent
+                    ) {
+                        this.typeScriptHandler.handleRequest( url, request, response );
+                    }
 
-                if ( !response.headersSent ) {
-                    this.fileHandler.handleRequest( url, request, response );
-                }
+                    if ( !response.headersSent ) {
+                        this.fileHandler.handleRequest( url, request, response );
+                    }
 
-                if ( !response.headersSent ) {
-                    this.errorHandler.handleRequest( url, request, response, 404 );
+                    if ( !response.headersSent ) {
+                        this.errorHandler.handleRequest( url, request, response, 404 );
+                    }
                 }
-
-                response.end();
+                catch ( error ) {
+                    if ( !response.headersSent ) {
+                        this.errorHandler.handleRequest( url, request, response, 500 );
+                    }
+                }
+                finally {
+                    response.end();
+                }
             } );
 
         server.on(

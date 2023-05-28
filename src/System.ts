@@ -116,9 +116,16 @@ function deleteFolder (
 
 
 function exec (
-    command: string
+    filePath: string,
+    env?: NodeJS.ProcessEnv,
+    stdio?: ChildProcess.StdioOptions
 ): string {
-    return ChildProcess.execSync( command, { encoding: 'utf8', timeout: 60000 } );
+    return ChildProcess.execFileSync( filePath, {
+        env,
+        stdio,
+        encoding: 'utf8',
+        timeout: 60000
+    } );
 }
 
 
