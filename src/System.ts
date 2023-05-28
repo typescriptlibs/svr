@@ -18,15 +18,15 @@
  * */
 
 
-import * as ChildProcess from 'node:child_process';
+import ChildProcess from 'node:child_process';
 
-import * as FS from 'node:fs';
+import FS from 'node:fs';
 
-import * as OS from 'node:os';
+import OS from 'node:os';
 
-import * as Path from 'node:path';
+import Path from 'node:path';
 
-import * as URL from 'node:url';
+import URL from 'node:url';
 
 
 /* *

@@ -40,7 +40,7 @@
     "scripts": {
         "build": "npm run clean && tsc -p src/tsconfig.json",
         "clean": "rm -rf lib/ tst-run/",
-        "test": "npm run build && node bin/svr.mjs -h",
+        "test": "npm run build && node bin/svr.mjs --timeout 10",
         "watch": "npm run build -- --watch"
     }
 }

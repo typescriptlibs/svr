@@ -39,18 +39,18 @@ export const HELP = [
     '',
     'OPTIONS:',
     '',
-    '  --cert [file]        File path to the HTTPS certificate.',
-    '',
-    '  --certKey [file]     File path to the HTTPS certificate key.',
-    '',
-    '  --cgi [path]         Activate CGI path in the root folder.',
+    '  --cgi [path]         Activates CGI path for web browsers.',
     '',
     '  --help, -h           Prints this help text.',
     '',
-    '  --http [port]        Activate HTTP port.',
+    '  --http [port]        Activates HTTP port.',
     '                       (Default: random number >= 1000)',
     '',
-    '  --https [port]       Activate HTTPS port.',
+    '  --https [port]       Activates HTTPS port.',
+    '',
+    '  --httpsCert [file]   File path to the HTTPS certificate.',
+    '',
+    '  --httpsKey [file]    File path to the HTTPS key.',
     '',
     '  --root [folder]      Root folder with files for web browsers.',
     '                       (Default: "./")',
@@ -102,11 +102,7 @@ export class CLI {
         system: typeof System
     ) {
         this.args = System.args( argv );
-        this.rootPath = (
-            typeof this.args.root === 'string' ?
-                this.args.root :
-                './'
-        );
+        this.rootPath = ( typeof this.args.root === 'string' ? this.args.root : './' );
         this.system = system;
     }
 
@@ -146,7 +142,12 @@ export class CLI {
             return;
         }
 
-        console.log( args );
+        if ( args.timeout ) {
+            setTimeout(
+                () => process.exit(),
+                parseInt( args.timeout.toString(), 10 ) * 1000
+            );
+        }
 
         let rootPath = this.rootPath;
 

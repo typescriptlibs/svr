@@ -18,6 +18,8 @@
  * */
 
 
+import FileHandler from './FileHandler.js';
+
 import HTTP from 'node:http';
 
 import HTTPS from 'node:https';
@@ -31,11 +33,13 @@ import HTTPS from 'node:https';
 
 
 export interface ServerOptions {
+    cgiPath?: string;
     httpPort?: number;
     httpsCert?: string;
-    httpsCertKey?: string;
+    httpsKey?: string;
     httpsPort?: number;
     rootPath?: string;
+    typeScript?: boolean;
 }
 
 
@@ -59,6 +63,7 @@ export class Server {
     public constructor (
         options: ServerOptions = { httpPort: 0 }
     ) {
+        this.options = options;
 
         if ( typeof options.httpPort === 'number' ) {
 
@@ -71,13 +76,11 @@ export class Server {
 
             this.https = HTTPS.createServer( {
                 cert: options.httpsCert,
-                key: options.httpsCertKey
+                key: options.httpsKey
             } );
 
             this.attachListeners( this.https );
         }
-
-        this.options = options;
     }
 
 
@@ -105,20 +108,29 @@ export class Server {
     private attachListeners (
         server: HTTP.Server
     ): void {
+        const options = this.options;
+        const protocol = server instanceof HTTPS.Server ? 'https' : 'http';
 
         server.on(
             'request',
             ( request, response ) => {
-                response.statusCode = 200;
-                response.setHeader( 'Content-Type', 'text/plain' );
-                response.end( `Hello, ${request.headers['user-agent']?.split( ' ' )[0]}` );
+                const url = new URL( ( request.url || '' ), `${protocol}://${request.headers.host}` );
+
+                if ( options.cgiPath ) {
+                    // @todo
+                }
+
+                if ( options.typeScript ) {
+                    // @todo
+                }
+
+                FileHandler.handleRequest( url, request, response );
             } );
 
         server.on(
             'listening',
             () => {
                 const address = server.address();
-                const protocol = server instanceof HTTPS.Server ? 'https' : 'http';
 
                 if ( address !== null ) {
                     address
