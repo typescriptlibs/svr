@@ -18,7 +18,7 @@
  * */
 
 
-import Server from './Server.js';
+import { Server, ServerOptions } from './Server.js';
 
 import System from './System.js';
 
@@ -56,6 +56,9 @@ export const HELP = [
     '                       (Default: "./")',
     '',
     '  --timeout [seconds]  Stops the server after the given amount of seconds.',
+    '',
+    '  --typescript         Activates transpile of TypeScript files for missing',
+    '                       JavaScript files.',
     '',
     '  --version, -v        Prints the version string.',
     '',
@@ -155,7 +158,31 @@ export class CLI {
             throw new Error( `Folder not found. (${rootPath})` );
         }
 
-        const server = new Server();
+        const options: ServerOptions = {
+            rootPath
+        };
+
+        if ( args.http ) {
+            options.httpPort = parseInt( args.http.toString(), 10 );
+
+            if ( isNaN( options.httpPort ) ) {
+                options.httpPort = 0;
+            }
+        }
+
+        if ( args.https ) {
+            options.httpsPort = parseInt( args.https.toString(), 10 );
+
+            if ( isNaN( options.httpsPort ) ) {
+                options.httpsPort = 0;
+            }
+        }
+
+        if ( args.typescript ) {
+            options.typeScript = true;
+        }
+
+        const server = new Server( options );
 
         server.start();
     }

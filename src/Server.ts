@@ -26,6 +26,8 @@ import HTTP from 'node:http';
 
 import HTTPS from 'node:https';
 
+import TypeScriptHandler from './TypeScriptHandler.js';
+
 
 /* *
  *
@@ -86,6 +88,10 @@ export class Server {
 
         this.errorHandler = new ErrorHandler( this );
         this.fileHandler = new FileHandler( this );
+
+        if ( options.typeScript ) {
+            this.typeScriptHandler = new TypeScriptHandler( this );
+        }
     }
 
 
@@ -108,7 +114,7 @@ export class Server {
 
     public readonly options: ServerOptions;
 
-    public readonly typeScriptHandler?: unknown;
+    public readonly typeScriptHandler?: TypeScriptHandler;
 
 
     /* *
@@ -121,7 +127,6 @@ export class Server {
     private attachListeners (
         server: HTTP.Server
     ): void {
-        const options = this.options;
         const protocol = server instanceof HTTPS.Server ? 'https' : 'http';
 
         server.on(
@@ -129,21 +134,30 @@ export class Server {
             ( request, response ) => {
                 const url = new URL( ( request.url || '' ), `${protocol}://${request.headers.host}` );
 
-                if ( this.cgiHandler ) {
+                if (
+                    this.cgiHandler &&
+                    !response.headersSent
+                ) {
                     // @todo
                     this.errorHandler.handleRequest( url, request, response, 500 );
                 }
-                else if ( this.typeScriptHandler ) {
-                    // @todo
-                    this.errorHandler.handleRequest( url, request, response, 500 );
+
+                if (
+                    this.typeScriptHandler &&
+                    !response.headersSent
+                ) {
+                    this.typeScriptHandler.handleRequest( url, request, response );
                 }
-                else {
+
+                if ( !response.headersSent ) {
                     this.fileHandler.handleRequest( url, request, response );
                 }
 
-                if ( !response.closed ) {
+                if ( !response.headersSent ) {
                     this.errorHandler.handleRequest( url, request, response, 404 );
                 }
+
+                response.end();
             } );
 
         server.on(

@@ -1,4 +1,6 @@
 {
+    "css.format.spaceAroundSelectorSeparator": true,
+    "html.format.indentInnerHtml": true,
     "editor.detectIndentation": false,
     "editor.formatOnSave": true,
     "editor.insertSpaces": true,
