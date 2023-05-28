@@ -18,6 +18,8 @@
  * */
 
 
+import ErrorHandler from './ErrorHandler.js';
+
 import FileHandler from './FileHandler.js';
 
 import HTTP from 'node:http';
@@ -81,6 +83,9 @@ export class Server {
 
             this.attachListeners( this.https );
         }
+
+        this.errorHandler = new ErrorHandler( this );
+        this.fileHandler = new FileHandler( this );
     }
 
 
@@ -91,11 +96,19 @@ export class Server {
      * */
 
 
+    public readonly cgiHandler?: unknown;
+
+    public readonly errorHandler: ErrorHandler;
+
+    public readonly fileHandler: FileHandler;
+
     public readonly http?: HTTP.Server;
 
     public readonly https?: HTTPS.Server;
 
     public readonly options: ServerOptions;
+
+    public readonly typeScriptHandler?: unknown;
 
 
     /* *
@@ -116,15 +129,21 @@ export class Server {
             ( request, response ) => {
                 const url = new URL( ( request.url || '' ), `${protocol}://${request.headers.host}` );
 
-                if ( options.cgiPath ) {
+                if ( this.cgiHandler ) {
                     // @todo
+                    this.errorHandler.handleRequest( url, request, response, 500 );
+                }
+                else if ( this.typeScriptHandler ) {
+                    // @todo
+                    this.errorHandler.handleRequest( url, request, response, 500 );
+                }
+                else {
+                    this.fileHandler.handleRequest( url, request, response );
                 }
 
-                if ( options.typeScript ) {
-                    // @todo
+                if ( !response.closed ) {
+                    this.errorHandler.handleRequest( url, request, response, 404 );
                 }
-
-                FileHandler.handleRequest( url, request, response );
             } );
 
         server.on(

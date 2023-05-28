@@ -131,13 +131,35 @@ function extractPackageVersion (
 }
 
 
+function fileContent (
+    filePath: string,
+    followSymbolicLink?: boolean
+): string {
+    return (
+        FS.existsSync( filePath ) &&
+        ( followSymbolicLink ? FS.lstatSync( filePath ) : FS.statSync( filePath ) ).isFile() &&
+        FS.readFileSync( filePath, 'utf-8' )
+    ) || '';
+}
+
+
 function fileExists (
-    filePath: string
+    filePath: string,
+    followSymbolicLink?: boolean
 ): boolean {
     return (
         FS.existsSync( filePath ) &&
-        FS.lstatSync( filePath ).isFile()
+        ( followSymbolicLink ? FS.lstatSync( filePath ) : FS.statSync( filePath ) ).isFile()
     );
+}
+
+
+function fileExtension (
+    filePath: string
+): string {
+    const extension = Path.extname( filePath );
+
+    return extension ? extension.substring( 1 ) : '';
 }
 
 
@@ -179,12 +201,28 @@ function filesFrom (
 }
 
 
+function fileSize (
+    filePath: string,
+    followSymbolicLink?: boolean
+): number {
+    if ( FS.existsSync( filePath ) ) {
+        const stat = ( followSymbolicLink ? FS.lstatSync( filePath ) : FS.statSync( filePath ) );
+
+        if ( stat.isFile() ) {
+            return stat.size;
+        }
+    }
+
+    return 0;
+}
+
 function folderExists (
-    folderPath: string
+    folderPath: string,
+    followSymbolicLink?: boolean
 ): boolean {
     return (
         FS.existsSync( folderPath ) &&
-        FS.lstatSync( folderPath ).isDirectory()
+        ( followSymbolicLink ? FS.lstatSync( folderPath ) : FS.statSync( folderPath ) ).isDirectory()
     );
 }
 
@@ -262,8 +300,11 @@ export const System = {
     deleteFolder,
     exec,
     extractPackageVersion,
+    fileContent,
     fileExists,
+    fileExtension,
     filesFrom,
+    fileSize,
     folderExists,
     folderName,
     joinPath,

@@ -13,12 +13,22 @@
 
 /* *
  *
+ *  Imports
+ *
+ * */
+
+
+import System from './System.js';
+
+
+/* *
+ *
  *  Constants
  *
  * */
 
 
-export const contentTypes: Record<string, string> = {
+const types: Record<string, string> = {
     _default: 'application/octet-stream',
     css: 'text/css',
     gif: 'image/gif',
@@ -38,9 +48,28 @@ export const contentTypes: Record<string, string> = {
 
 /* *
  *
+ *  Functions
+ *
+ * */
+
+
+function getType (
+    filePath: string
+): string {
+    return types[System.fileExtension( filePath )] || types._default;
+}
+
+
+/* *
+ *
  *  Default Export
  *
  * */
 
 
-export default contentTypes;
+const ContentTypes = {
+    types,
+    getType
+}
+
+export default ContentTypes;

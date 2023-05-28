@@ -22,10 +22,6 @@ import type HTTP from 'node:http';
 
 import type Server from './Server.js';
 
-import ContentTypes from './ContentTypes.js';
-
-import System from './System.js';
-
 
 /* *
  *
@@ -34,7 +30,7 @@ import System from './System.js';
  * */
 
 
-export class FileHandler {
+export class ErrorHandler {
 
 
     /* *
@@ -47,7 +43,6 @@ export class FileHandler {
     public constructor (
         server: Server
     ) {
-        this.rootPath = server.options.rootPath || './';
         this.server = server;
     }
 
@@ -59,10 +54,7 @@ export class FileHandler {
      * */
 
 
-    public rootPath: string;
-
     public server: Server;
-
 
     /* *
      *
@@ -74,20 +66,11 @@ export class FileHandler {
     public handleRequest (
         url: URL,
         request: HTTP.IncomingMessage,
-        response: HTTP.ServerResponse
+        response: HTTP.ServerResponse,
+        statusCode: number
     ): void {
-        let localPath = System.joinPath( this.rootPath, url.pathname );
-
-        if ( System.folderExists( localPath ) ) {
-            localPath = System.joinPath( localPath, 'index.html' );
-        }
-
-        if ( System.fileExists( localPath ) ) {
-            response.statusCode = 200;
-            response.setHeader( 'Content-Type', ContentTypes.getType( localPath ) );
-            response.setHeader( 'Content-Length', System.fileSize( localPath ) );
-            response.end( System.fileContent( localPath ) );
-        }
+        response.statusCode = statusCode;
+        response.end();
     }
 
 
@@ -101,4 +84,4 @@ export class FileHandler {
  * */
 
 
-export default FileHandler;
+export default ErrorHandler;
