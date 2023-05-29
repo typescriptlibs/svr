@@ -10,8 +10,8 @@ The following versions of @typescriptlibs/svr are currently being supported with
 
 | Version | Supported |
 | ------- | --------- |
-| 0.0.1   | yes       |
-| < 0.0.1 | no        |
+| 0.1.x   | yes       |
+| < 0.1.0 | no        |
 
 
 
