@@ -13,12 +13,12 @@
 
 /* *
  *
- *  Imports
+ *  Import
  *
  * */
 
 
-import Server, { ServerInput, ServerOutput } from './Server.js';
+import Server from './Server.js';
 
 
 /* *
@@ -28,7 +28,8 @@ import Server, { ServerInput, ServerOutput } from './Server.js';
  * */
 
 
-export class ErrorHandler {
+export class Log {
+
 
 
     /* *
@@ -54,6 +55,7 @@ export class ErrorHandler {
 
     public server: Server;
 
+
     /* *
      *
      *  Functions
@@ -61,14 +63,23 @@ export class ErrorHandler {
      * */
 
 
-    public handleRequest (
-        url: URL,
-        input: ServerInput,
-        output: ServerOutput,
-        statusCode: number
-    ): void {
-        output.statusCode = statusCode;
-        output.end();
+    protected dateString (): string {
+        return new Date().toISOString();
+    }
+
+
+    public error ( error: unknown ): void {
+
+        if ( error instanceof Error ) {
+            this.info( error.name, error.message );
+        }
+
+        console.error( this.dateString(), `${error}` );
+    }
+
+
+    public info ( ...message: Array<unknown> ): void {
+        console.info( this.dateString(), ...message );
     }
 
 
@@ -82,4 +93,4 @@ export class ErrorHandler {
  * */
 
 
-export default ErrorHandler;
+export default Log;

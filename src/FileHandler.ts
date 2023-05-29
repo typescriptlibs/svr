@@ -18,11 +18,9 @@
  * */
 
 
-import type HTTP from 'node:http';
-
-import type Server from './Server.js';
-
 import ContentTypes from './ContentTypes.js';
+
+import Server, { ServerInput, ServerOutput } from './Server.js';
 
 import System from './System.js';
 
@@ -73,8 +71,8 @@ export class FileHandler {
 
     public handleRequest (
         url: URL,
-        request: HTTP.IncomingMessage,
-        response: HTTP.ServerResponse
+        input: ServerInput,
+        output: ServerOutput
     ): void {
         let localPath = System.joinPath( this.rootPath, url.pathname );
 
@@ -83,10 +81,10 @@ export class FileHandler {
         }
 
         if ( System.fileExists( localPath ) ) {
-            response.statusCode = 200;
-            response.setHeader( 'Content-Type', ContentTypes.getType( localPath ) );
-            response.setHeader( 'Content-Length', System.fileSize( localPath ) );
-            response.end( System.fileContent( localPath ) );
+            output.statusCode = 200;
+            output.setHeader( 'Content-Type', ContentTypes.getType( localPath ) );
+            output.setHeader( 'Content-Length', System.fileSize( localPath ) );
+            output.end( System.fileContent( localPath ) );
         }
     }
 

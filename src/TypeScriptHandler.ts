@@ -18,11 +18,9 @@
  * */
 
 
-import type HTTP from 'node:http';
-
-import type Server from './Server.js';
-
 import ContentTypes from './ContentTypes.js';
+
+import Server, { ServerInput, ServerOutput } from './Server.js';
 
 import System from './System.js';
 
@@ -75,8 +73,8 @@ export class TypeScriptHandler {
 
     public handleRequest (
         url: URL,
-        request: HTTP.IncomingMessage,
-        response: HTTP.ServerResponse
+        input: ServerInput,
+        output: ServerOutput
     ): void {
         const jsPathname = url.pathname;
         const jsExtension = System.fileExtension( jsPathname );
@@ -107,10 +105,10 @@ export class TypeScriptHandler {
                 localTSPath
             );
 
-            response.statusCode = 200;
-            response.setHeader( 'Content-Type', ContentTypes.types[jsExtension] );
-            response.setHeader( 'Content-Length', jsFile.length );
-            response.end( jsFile );
+            output.statusCode = 200;
+            output.setHeader( 'Content-Type', ContentTypes.types[jsExtension] );
+            output.setHeader( 'Content-Length', jsFile.length );
+            output.end( jsFile );
         }
     }
 

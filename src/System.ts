@@ -31,6 +31,16 @@ import URL from 'node:url';
 
 /* *
  *
+ *  Declarations
+ *
+ * */
+
+
+export type ExecOptions = ChildProcess.ExecFileSyncOptions;
+
+
+/* *
+ *
  *  Constants
  *
  * */
@@ -41,6 +51,8 @@ const CWD = process.cwd();
 const EOL = OS.EOL;
 
 const PATH = joinPath( folderName( pathFromURL( import.meta.url ) ), '..' );
+
+const SEPARATOR = Path.sep;
 
 const VERSION = extractPackageVersion();
 
@@ -117,15 +129,12 @@ function deleteFolder (
 
 function exec (
     filePath: string,
-    env?: NodeJS.ProcessEnv,
-    stdio?: ChildProcess.StdioOptions
+    options?: ExecOptions
 ): string {
     return ChildProcess.execFileSync( filePath, {
-        env,
-        stdio,
-        encoding: 'utf8',
-        timeout: 60000
-    } );
+        timeout: 60000,
+        ...options
+    } ).toString();
 }
 
 
@@ -302,6 +311,7 @@ export const System = {
     CWD,
     EOL,
     PATH,
+    SEPARATOR,
     VERSION,
     args,
     deleteFolder,

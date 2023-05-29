@@ -18,13 +18,11 @@
  * */
 
 
-import type HTTP from 'node:http';
-
-import type Server from './Server.js';
-
 import ContentTypes from './ContentTypes.js';
 
-import System from './System.js';
+import Server, { ServerInput, ServerOutput } from './Server.js';
+
+import System, { ExecOptions } from './System.js';
 
 
 /* *
@@ -76,23 +74,44 @@ export class CGIHandler {
 
     public handleRequest (
         url: URL,
-        request: HTTP.IncomingMessage,
-        response: HTTP.ServerResponse
+        input: ServerInput,
+        output: ServerOutput
     ): void {
+        const cgiPath = this.cgiPath;
+        const rootPath = this.rootPath;
+        const urlPath = url.pathname;
 
-        if ( !url.pathname.startsWith( this.cgiPath ) ) {
+        if ( !urlPath.substring( 1 ).startsWith( cgiPath ) ) {
             return;
         }
 
-        const localPath = System.joinPath( this.rootPath, url.pathname );
+        const cgiSegments = urlPath.substring( cgiPath.length + 1 ).split( System.SEPARATOR, 2 );
+        const cgiName = cgiSegments[0] || '';
+        const cgiInfo = cgiSegments[1] || '';
+        const cgiScript = System.joinPath( rootPath, cgiPath, cgiName );
 
-        if ( System.fileExists( localPath ) ) {
-            const result = System.exec( localPath );
+        if ( System.fileExists( cgiScript ) ) {
+            const options: ExecOptions = {
+                env: {
+                    GATEWAY_INTERFACE: 'CGI/1.1',
+                    PATH_INFO: cgiInfo,
+                    PATH_TRANSLATED: System.joinPath( rootPath, cgiInfo ),
+                    QUERY_STRING: url.searchParams.toString(),
+                    REMOTE_ADDR: input.socket.remoteAddress,
+                    REQUEST_METHOD: input.method || 'GET',
+                    SCRIPT_NAME: cgiName,
+                    SERVER_NAME: url.hostname,
+                    SERVER_PORT: url.port,
+                    SERVER_PROTOCOL: url.protocol,
+                    SERVER_SOFTWARE: `SVR/${System.VERSION}`
+                }
+            };
 
-            response.statusCode = 200;
-            response.setHeader( 'Content-Type', ContentTypes.types._default );
-            response.setHeader( 'Content-Length', result.length );
-            response.end( result );
+            const result = System.exec( cgiScript, options );
+
+            output.statusCode = 200;
+            output.setHeader( 'Content-Length', result.length );
+            output.end( result );
         }
     }
 

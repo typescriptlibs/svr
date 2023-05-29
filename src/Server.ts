@@ -28,6 +28,10 @@ import HTTP from 'node:http';
 
 import HTTPS from 'node:https';
 
+import Log from './Log.js';
+
+import TLS from 'node:tls';
+
 import TypeScriptHandler from './TypeScriptHandler.js';
 
 
@@ -37,6 +41,8 @@ import TypeScriptHandler from './TypeScriptHandler.js';
  *
  * */
 
+
+export type ServerInput = HTTP.IncomingMessage;
 
 export interface ServerOptions {
     cgiPath?: string;
@@ -48,6 +54,7 @@ export interface ServerOptions {
     typeScript?: boolean;
 }
 
+export type ServerOutput = HTTP.ServerResponse;
 
 /* *
  *
@@ -71,33 +78,31 @@ export class Server {
     ) {
         this.options = options;
 
+        this.log = new Log( this );
+
         if ( typeof options.httpPort === 'number' ) {
-
             this.http = HTTP.createServer()
-
-            this.attachListeners( this.http );
         }
 
         if ( typeof options.httpsPort === 'number' ) {
-
             this.https = HTTPS.createServer( {
                 cert: options.httpsCert,
                 key: options.httpsKey
             } );
-
-            this.attachListeners( this.https );
         }
 
         this.errorHandler = new ErrorHandler( this );
         this.fileHandler = new FileHandler( this );
 
-        if ( options.cgiPath ) {
+        if ( typeof options.cgiPath === 'string' ) {
             this.cgiHandler = new CGIHandler( this );
         }
 
-        if ( options.typeScript ) {
+        if ( options.typeScript === true ) {
             this.typeScriptHandler = new TypeScriptHandler( this );
         }
+
+        this.attachListeners();
     }
 
 
@@ -118,6 +123,8 @@ export class Server {
 
     public readonly https?: HTTPS.Server;
 
+    public readonly log: Log;
+
     public readonly options: ServerOptions;
 
     public readonly typeScriptHandler?: TypeScriptHandler;
@@ -130,64 +137,79 @@ export class Server {
      * */
 
 
-    private attachListeners (
-        server: HTTP.Server
-    ): void {
-        const protocol = server instanceof HTTPS.Server ? 'https' : 'http';
+    private attachListeners (): void {
+        const cgiHandler = this.cgiHandler;
+        const errorHandler = this.errorHandler;
+        const fileHandler = this.fileHandler;
+        const http = this.http;
+        const https = this.https;
+        const log = this.log;
+        const typeScriptHandler = this.typeScriptHandler;
 
-        server.on(
-            'request',
-            ( request, response ) => {
-                const url = new URL( ( request.url || '' ), `${protocol}://${request.headers.host}` );
+        const onRequest = (
+            input: ServerInput,
+            output: ServerOutput
+        ) => {
+            const protocol = ( input.socket instanceof TLS.TLSSocket ? 'https' : 'http' );
+            const url = new URL( ( input.url || '' ), `${protocol}://${input.headers.host}` );
 
-                try {
-                    if (
-                        this.cgiHandler &&
-                        !response.headersSent
-                    ) {
-                        this.cgiHandler.handleRequest( url, request, response );
-                    }
+            try {
+                log.info( url.toString() );
 
-                    if (
-                        this.typeScriptHandler &&
-                        !response.headersSent
-                    ) {
-                        this.typeScriptHandler.handleRequest( url, request, response );
-                    }
-
-                    if ( !response.headersSent ) {
-                        this.fileHandler.handleRequest( url, request, response );
-                    }
-
-                    if ( !response.headersSent ) {
-                        this.errorHandler.handleRequest( url, request, response, 404 );
-                    }
+                if ( cgiHandler && !output.headersSent ) {
+                    cgiHandler.handleRequest( url, input, output );
                 }
-                catch ( error ) {
-                    if ( !response.headersSent ) {
-                        this.errorHandler.handleRequest( url, request, response, 500 );
-                    }
-                }
-                finally {
-                    response.end();
-                }
-            } );
 
-        server.on(
-            'listening',
-            () => {
-                const address = server.address();
-
-                if ( address !== null ) {
-                    address
-                    console.info(
-                        'Listening on',
-                        typeof address === 'string' ?
-                            address :
-                            `${protocol}://localhost:${address.port}`
-                    );
+                if ( typeScriptHandler && !output.headersSent ) {
+                    typeScriptHandler.handleRequest( url, input, output );
                 }
-            } );
+
+                if ( !output.headersSent ) {
+                    fileHandler.handleRequest( url, input, output );
+                }
+
+                if ( !output.headersSent ) {
+                    errorHandler.handleRequest( url, input, output, 404 );
+                }
+            }
+            catch ( error ) {
+                log.error( '' + error );
+
+                if ( !output.headersSent ) {
+                    errorHandler.handleRequest( url, input, output, 500 );
+                }
+            }
+            finally {
+                output.end();
+            }
+        };
+
+        const onListening = (
+            httpServer: HTTP.Server
+        ) => {
+            const address = httpServer.address();
+            const protocol = ( httpServer instanceof HTTPS.Server ? 'https' : 'http' );
+
+            if ( address !== null ) {
+                address
+                log.info(
+                    'Listening on',
+                    typeof address === 'string' ?
+                        address :
+                        `${protocol}://localhost:${address.port}`
+                );
+            }
+        };
+
+        if ( http ) {
+            http.on( 'request', onRequest );
+            http.on( 'listening', () => onListening( http ) );
+        }
+
+        if ( https ) {
+            https.on( 'request', onRequest );
+            https.on( 'listening', () => onListening( https ) );
+        }
     }
 
 

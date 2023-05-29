@@ -30,7 +30,7 @@ import System from './System.js';
  * */
 
 
-export const VERSION = `Version ${System.extractPackageVersion()}`;
+export const VERSION = `Version ${System.VERSION}`;
 
 export const HELP = [
     `SVR: Simple HTTP(S) Server - ${VERSION}`,
@@ -43,17 +43,15 @@ export const HELP = [
     '',
     '  --help, -h           Prints this help text.',
     '',
-    '  --http [port]        Activates HTTP port.',
-    '                       (Default: random number >= 1000)',
+    '  --http [port]        Activates HTTP port. Port number is optional.',
     '',
-    '  --https [port]       Activates HTTPS port.',
+    '  --https [port]       Activates HTTPS port. Port number is optional.',
     '',
-    '  --httpsCert [file]   File path to the HTTPS certificate.',
+    '  --https-cert [file]  File path to the HTTPS certificate.',
     '',
-    '  --httpsKey [file]    File path to the HTTPS key.',
+    '  --https-key [file]   File path to the HTTPS key.',
     '',
     '  --root [folder]      Root folder with files for web browsers.',
-    '                       (Default: "./")',
     '',
     '  --timeout [seconds]  Stops the server after the given amount of seconds.',
     '',
@@ -64,8 +62,8 @@ export const HELP = [
     '',
     'EXAMPLES:',
     '',
-    '  svr --root html/',
-    '  Starts the server and delivers files in the "html" folder to web browsers.',
+    '  npx svr',
+    '  Starts the server and delivers files from the current folder to web browsers.',
 ];
 
 
@@ -162,6 +160,10 @@ export class CLI {
             rootPath
         };
 
+        if ( args.cgi ) {
+            options.cgiPath = ( typeof args.cgi === 'string' ? args.cgi : 'cgi-bin' );
+        }
+
         if ( args.http ) {
             options.httpPort = parseInt( args.http.toString(), 10 );
 
@@ -176,6 +178,14 @@ export class CLI {
             if ( isNaN( options.httpsPort ) ) {
                 options.httpsPort = 0;
             }
+        }
+
+        if ( args['https-cert'] ) {
+            options.httpsCert = args['https-cert'].toString();
+        }
+
+        if ( args['https-key'] ) {
+            options.httpsCert = args['https-key'].toString();
         }
 
         if ( args.typescript ) {
