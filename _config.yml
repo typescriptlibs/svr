@@ -1,7 +1,7 @@
 # GitHub Pages config
 
-title: TypeScript AMD Loader
-description: Basic loader to run TypeScript AMD bundles.
+title: TypeScript SVR Loader
+description: Simple server to run local browser tests.
 author: © TypeScriptLibs and Contributors
 
 email: bug@typescriptlibs.org
