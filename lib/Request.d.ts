@@ -10,13 +10,14 @@
 
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
 /// <reference types="node" resolution-mode="require"/>
-import Server, { ServerInput, ServerOutput, ServerProtocol } from './Server.js';
+import Server, { ServerInput, ServerOutput } from './Server.js';
+export type RequestProtocol = ('http' | 'https');
 export declare class Request {
     constructor(server: Server, output: ServerOutput);
     private _body?;
     readonly input: ServerInput;
     readonly output: ServerOutput;
-    readonly protocol: ServerProtocol;
+    readonly protocol: RequestProtocol;
     readonly server: Server;
     readonly url: URL;
     body(): Promise<Buffer>;

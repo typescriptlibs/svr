@@ -20,9 +20,22 @@
 
 import HTTP from 'node:http';
 
-import Server, { ServerInput, ServerOutput, ServerProtocol } from './Server.js';
+import Server, { ServerInput, ServerOutput } from './Server.js';
 
 import TLS from 'node:tls';
+
+
+/* *
+ *
+ *  Declarations
+ *
+ * */
+
+
+export type RequestProtocol = (
+    | 'http'
+    | 'https'
+);
 
 
 /* *
@@ -47,7 +60,7 @@ export class Request {
         output: ServerOutput
     ) {
         const input: ServerInput = output.req;
-        const protocol = ( input.socket instanceof TLS.TLSSocket ? 'https' : 'http' );
+        const protocol: RequestProtocol = ( input.socket instanceof TLS.TLSSocket ? 'https' : 'http' );
 
         this.input = output.req;
         this.output = output;
@@ -70,7 +83,7 @@ export class Request {
 
     public readonly output: ServerOutput;
 
-    public readonly protocol: ServerProtocol;
+    public readonly protocol: RequestProtocol;
 
     public readonly server: Server;
 
