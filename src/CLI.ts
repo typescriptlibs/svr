@@ -181,11 +181,21 @@ export class CLI {
         }
 
         if ( args['https-cert'] ) {
-            options.httpsCert = args['https-cert'].toString();
+            const certPath = args['https-cert'].toString();
+
+            if ( System.fileExists( certPath ) ) {
+                // set file content, not path (#1)
+                options.httpsCert = System.fileContent( certPath );
+            }
         }
 
         if ( args['https-key'] ) {
-            options.httpsCert = args['https-key'].toString();
+            const keyPath = args['https-key'].toString();
+
+            if ( System.fileExists( keyPath ) ) {
+                // set file content, not path (#1)
+                options.httpsKey = System.fileContent( keyPath );
+            }
         }
 
         if ( args.typescript ) {
