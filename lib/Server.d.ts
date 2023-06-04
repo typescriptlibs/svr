@@ -11,13 +11,17 @@
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
 /// <reference types="node" resolution-mode="require"/>
 /// <reference types="node" resolution-mode="require"/>
-import CGIHandler from './CGIHandler.js';
+import type CGIHandler from './CGIHandler.js';
+import type TypeScriptHandler from './TypeScriptHandler.js';
 import ErrorHandler from './ErrorHandler.js';
 import FileHandler from './FileHandler.js';
 import HTTP from 'node:http';
 import HTTPS from 'node:https';
 import Log from './Log.js';
-import TypeScriptHandler from './TypeScriptHandler.js';
+export interface ServerHandlers {
+    CGIHandler?: typeof CGIHandler;
+    TypeScriptHandler?: typeof TypeScriptHandler;
+}
 export type ServerInput = HTTP.IncomingMessage;
 export interface ServerOptions {
     cgiPath?: string;
@@ -30,15 +34,17 @@ export interface ServerOptions {
 }
 export type ServerOutput = HTTP.ServerResponse;
 export declare class Server {
-    constructor(options?: ServerOptions);
-    readonly cgiHandler?: CGIHandler;
+    static create(options?: ServerOptions): Promise<Server>;
+    constructor(options?: ServerOptions, serverHandlers?: ServerHandlers);
+    cgiHandler?: CGIHandler;
     readonly errorHandler: ErrorHandler;
     readonly fileHandler: FileHandler;
     readonly http?: HTTP.Server;
     readonly https?: HTTPS.Server;
     readonly log: Log;
     readonly options: ServerOptions;
-    readonly typeScriptHandler?: TypeScriptHandler;
+    typeScriptHandler?: TypeScriptHandler;
+    protected attachHandlers(serverHandlers?: ServerHandlers): void;
     private attachListeners;
     start(): void;
     stop(): void;

@@ -18,9 +18,9 @@
  * */
 
 
-import ContentTypes from './ContentTypes.js';
+import Request from './Request.js';
 
-import Server, { ServerInput, ServerOutput } from './Server.js';
+import Server from './Server.js';
 
 import System, { ExecOptions } from './System.js';
 
@@ -47,7 +47,6 @@ export class CGIHandler {
     ) {
         this.cgiPath = server.options.cgiPath || '/cgi-bin';
         this.rootPath = server.options.rootPath || './';
-        this.server = server;
     }
 
 
@@ -62,8 +61,6 @@ export class CGIHandler {
 
     public rootPath: string;
 
-    public server: Server;
-
 
     /* *
      *
@@ -72,47 +69,99 @@ export class CGIHandler {
      * */
 
 
-    public handleRequest (
-        url: URL,
-        input: ServerInput,
-        output: ServerOutput
-    ): void {
+    public async handleRequest (
+        request: Request
+    ): Promise<void> {
         const cgiPath = this.cgiPath;
         const rootPath = this.rootPath;
+        const input = request.input;
+        const output = request.output;
+        const url = request.url;
         const urlPath = url.pathname;
+
+        // If no CGI script requested
 
         if ( !urlPath.substring( 1 ).startsWith( cgiPath ) ) {
             return;
         }
 
-        const cgiSegments = urlPath.substring( cgiPath.length + 1 ).split( System.SEPARATOR, 2 );
-        const cgiName = cgiSegments[0] || '';
-        const cgiInfo = cgiSegments[1] || '';
-        const cgiScript = System.joinPath( rootPath, cgiPath, cgiName );
+        // Split request path (#4)
 
-        if ( System.fileExists( cgiScript ) ) {
-            const options: ExecOptions = {
-                env: {
-                    GATEWAY_INTERFACE: 'CGI/1.1',
-                    PATH_INFO: cgiInfo,
-                    PATH_TRANSLATED: System.joinPath( rootPath, cgiInfo ),
-                    QUERY_STRING: url.searchParams.toString(),
-                    REMOTE_ADDR: input.socket.remoteAddress,
-                    REQUEST_METHOD: input.method || 'GET',
-                    SCRIPT_NAME: cgiName,
-                    SERVER_NAME: url.hostname,
-                    SERVER_PORT: url.port,
-                    SERVER_PROTOCOL: url.protocol,
-                    SERVER_SOFTWARE: `SVR/${System.VERSION}`
-                }
-            };
+        const cgiName = (
+            urlPath.substring( 0, urlPath.indexOf( '/', cgiPath.length + 2 ) ) ||
+            urlPath // keep original if no trailing info found
+        );
+        const cgiInfo = urlPath.substring( cgiName.length );
+        const cgiScript = System.joinPath( System.CWD, rootPath, cgiName );
 
-            const result = System.exec( cgiScript, options );
+        // If CGI script not found
 
-            output.statusCode = 200;
-            output.setHeader( 'Content-Length', result.length );
-            output.end( result );
+        if ( !System.fileExists( cgiScript ) ) {
+            request.server.errorHandler.handleRequest( request, 404 );
         }
+
+        // Set environment variables
+
+        const env: NodeJS.ProcessEnv = {
+            GATEWAY_INTERFACE: 'CGI/1.1',
+            HOME: process.env.HOME,
+            PATH: process.env.PATH,
+            PATH_INFO: cgiInfo,
+            PATH_TRANSLATED: System.joinPath( System.CWD, rootPath, cgiInfo ),
+            QUERY_STRING: url.searchParams.toString(),
+            REMOTE_ADDR: input.socket.remoteAddress || '0.0.0.0',
+            REMOTE_PORT: `${input.socket.remotePort || 0}`,
+            REQUEST_METHOD: input.method || 'GET',
+            REQUEST_URI: url.pathname + url.search,
+            SCRIPT_FILENAME: cgiScript,
+            SCRIPT_NAME: cgiName,
+            SERVER_NAME: url.hostname,
+            SERVER_PORT: url.port,
+            SERVER_PROTOCOL: 'HTTP/1.1',
+            SERVER_SOFTWARE: `SVR/${System.VERSION}`
+        };
+
+        // Add HTTP header as environment variables
+
+        const headers = input.headers;
+
+        let envKey: string;
+        let value: ( string | Array<string> | undefined );
+
+        for ( const key in headers ) {
+            value = headers[key];
+            envKey = key.toUpperCase().replace( /-/g, '_' );
+
+            env[`HTTP_${envKey}`] = (
+                !value || typeof value === 'string' ?
+                    value :
+                    value.join( ', ' )
+            );
+        }
+
+        // Indicate HTTPS as environment variable
+
+        if ( url.protocol === 'https' ) {
+            env['HTTPS'] = 'true';
+        }
+
+        // Add HTTP body as standard input
+
+        const options: ExecOptions = {
+            env
+        };
+
+        if ( input.method === 'POST' || input.method === 'PUT' ) {
+            options.input = await request.body();
+        }
+
+        // Execute CGI script
+
+        const result = System.exec( cgiScript, options );
+
+        output.statusCode = 200;
+        output.setHeader( 'Content-Lengh', result.length );
+        output.end( result );
     }
 
 

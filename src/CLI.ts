@@ -202,10 +202,12 @@ export class CLI {
             options.typeScript = true;
         }
 
-        const server = new Server( options );
+        const server = await Server.create( options );
 
         server.start();
     }
+
+
 }
 
 

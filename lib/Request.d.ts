@@ -13,7 +13,7 @@
 import Server, { ServerInput, ServerOutput } from './Server.js';
 export type RequestProtocol = ('http' | 'https');
 export declare class Request {
-    constructor(server: Server, output: ServerOutput);
+    constructor(server: Server, input: ServerInput, output: ServerOutput);
     private _body?;
     readonly input: ServerInput;
     readonly output: ServerOutput;

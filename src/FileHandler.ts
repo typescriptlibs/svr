@@ -20,7 +20,9 @@
 
 import ContentTypes from './ContentTypes.js';
 
-import Server, { ServerInput, ServerOutput } from './Server.js';
+import Request from './Request.js';
+
+import Server from './Server.js';
 
 import System from './System.js';
 
@@ -46,7 +48,6 @@ export class FileHandler {
         server: Server
     ) {
         this.rootPath = server.options.rootPath || './';
-        this.server = server;
     }
 
 
@@ -59,8 +60,6 @@ export class FileHandler {
 
     public rootPath: string;
 
-    public server: Server;
-
 
     /* *
      *
@@ -70,11 +69,11 @@ export class FileHandler {
 
 
     public handleRequest (
-        url: URL,
-        input: ServerInput,
-        output: ServerOutput
+        request: Request
     ): void {
-        let localPath = System.joinPath( this.rootPath, url.pathname );
+        const output = request.output;
+
+        let localPath = System.joinPath( this.rootPath, request.url.pathname );
 
         if ( System.folderExists( localPath ) ) {
             localPath = System.joinPath( localPath, 'index.html' );

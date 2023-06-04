@@ -9,12 +9,12 @@
   https://typescriptlibs.org/LICENSE.txt
 
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
-import Server, { ServerInput, ServerOutput } from './Server.js';
+import Request from './Request.js';
+import Server from './Server.js';
 export declare class CGIHandler {
     constructor(server: Server);
     cgiPath: string;
     rootPath: string;
-    server: Server;
-    handleRequest(url: URL, input: ServerInput, output: ServerOutput): void;
+    handleRequest(request: Request): Promise<void>;
 }
 export default CGIHandler;
