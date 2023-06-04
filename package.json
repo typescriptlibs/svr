@@ -14,6 +14,7 @@
     "repository": "https://github.com/typescriptlibs/svr.git",
     "devDependencies": {
         "@types/node": "~18.6.0",
+        "@typescriptlibs/tst": "^0.0.5",
         "husky": "~8.0.3",
         "typescript": "~5.0.4"
     },
@@ -40,7 +41,11 @@
     "scripts": {
         "build": "npm run clean && tsc -p src/tsconfig.json",
         "clean": "rm -rf lib/ tst-run/",
-        "test": "npm run build && node bin/svr.mjs --timeout 3",
+        "test": "npm run build && npm run test:prepare && npm run test:run && npm run test:cleanup",
+        "test:cleanup": "pkill -9 -f 'node bin/svr.mjs --cgi --http 9876 --root 'tst/svr-files' --timeout 60'",
+        "test:prepare": "npm run test:svr &",
+        "test:run": "tst --reset --verbose tst/",
+        "test:svr": "node bin/svr.mjs --cgi --http 9876 --root 'tst/svr-files' --timeout 60",
         "watch": "npm run build -- --watch"
     }
 }
