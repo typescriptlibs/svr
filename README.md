@@ -13,10 +13,35 @@ other files to web browsers.
 
 
 
-Example
--------
+Examples
+--------
 
 ``` Shell
 cd html
 npx svr
 ```
+
+*or*
+
+``` Shell
+npx svr --root html
+```
+
+
+
+Options
+-------
+
+- `--cgi [path]`: Activates CGI path for web browsers.
+
+- `--http [port]`: Activates HTTP port. Port number is optional.
+
+- `--https [port]`: Activates HTTPS port. Port number is optional.
+
+- `--https-cert [file]`: File path to the HTTPS certificate.
+
+- `--https-key [file]`: File path to the HTTPS key.
+
+- `--root [folder]`: Root folder with files for web browsers.
+
+- `--timeout [seconds]`: Stops the server after the given amount of seconds.
