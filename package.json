@@ -5,7 +5,7 @@
     "license": "MIT",
     "name": "@typescriptlibs/svr",
     "type": "module",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "bin": "bin/svr.mjs",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
