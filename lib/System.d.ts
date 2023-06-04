@@ -14,7 +14,7 @@ import ChildProcess from 'node:child_process';
 export type ExecOptions = ChildProcess.ExecFileSyncOptions;
 declare function args(argv: Array<string>): Record<string, (boolean | string | Array<string>)>;
 declare function deleteFolder(path: string): void;
-declare function exec(filePath: string, options?: ExecOptions): string;
+declare function exec(filePath: string, options?: ExecOptions): Promise<string>;
 declare function extractPackageVersion(packagePath?: string): string;
 declare function fileContent(filePath: string, followSymbolicLink?: boolean): string;
 declare function fileExists(filePath: string, followSymbolicLink?: boolean): boolean;

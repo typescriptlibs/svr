@@ -54,11 +54,13 @@ export class ErrorHandler {
 
 
     public handleRequest (
-        context: Request,
+        request: Request,
         statusCode: number
     ): void {
-        context.output.statusCode = statusCode;
-        context.output.end();
+        const output = request.output;
+
+        output.statusCode = statusCode;
+        output.end();
     }
 
 

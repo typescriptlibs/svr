@@ -127,15 +127,22 @@ function deleteFolder (
 }
 
 
-function exec (
+async function exec (
     filePath: string,
     options?: ExecOptions
-): string {
-    return ChildProcess.execFileSync( filePath, [], {
-        shell: true,
-        timeout: 60000,
-        ...options
-    } ).toString();
+): Promise<string> {
+    return new Promise( ( resolve, reject ) => {
+        ChildProcess.execFile(
+            filePath,
+            [],
+            {
+                shell: true,
+                timeout: 60000,
+                ...options
+            },
+            ( error, stdout, stderr ) => ( error || stderr ? reject( error || stderr ) : resolve( stdout ) )
+        )
+    } );
 }
 
 

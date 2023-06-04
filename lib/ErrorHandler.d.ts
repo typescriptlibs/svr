@@ -13,6 +13,6 @@ import Request from './Request.js';
 import Server from './Server.js';
 export declare class ErrorHandler {
     constructor(_server: Server);
-    handleRequest(context: Request, statusCode: number): void;
+    handleRequest(request: Request, statusCode: number): void;
 }
 export default ErrorHandler;
