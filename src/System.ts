@@ -131,7 +131,8 @@ function exec (
     filePath: string,
     options?: ExecOptions
 ): string {
-    return ChildProcess.execFileSync( filePath, {
+    return ChildProcess.execFileSync( filePath, [], {
+        shell: true,
         timeout: 60000,
         ...options
     } ).toString();

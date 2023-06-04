@@ -18,7 +18,9 @@
  * */
 
 
-import CGIHandler from './CGIHandler.js';
+import type CGIHandler from './CGIHandler.js';
+
+import type TypeScriptHandler from './TypeScriptHandler.js';
 
 import ErrorHandler from './ErrorHandler.js';
 
@@ -30,9 +32,7 @@ import HTTPS from 'node:https';
 
 import Log from './Log.js';
 
-import TLS from 'node:tls';
-
-import TypeScriptHandler from './TypeScriptHandler.js';
+import Request from './Request.js';
 
 
 /* *
@@ -41,6 +41,11 @@ import TypeScriptHandler from './TypeScriptHandler.js';
  *
  * */
 
+
+export interface ServerHandlers {
+    CGIHandler?: typeof CGIHandler;
+    TypeScriptHandler?: typeof TypeScriptHandler;
+}
 
 export type ServerInput = HTTP.IncomingMessage;
 
@@ -68,13 +73,38 @@ export class Server {
 
     /* *
      *
+     *  Static Functions
+     *
+     * */
+
+
+    public static async create (
+        options: ServerOptions = { httpPort: 0 }
+    ): Promise<Server> {
+        const serverHandlers: ServerHandlers = {};
+
+        if ( typeof options.cgiPath === 'string' ) {
+            serverHandlers.CGIHandler = ( await import( './CGIHandler.js' ) ).default;
+        }
+
+        if ( typeof options.typeScript === 'string' ) {
+            serverHandlers.TypeScriptHandler = ( await import( './TypeScriptHandler.js' ) ).default;
+        }
+
+        return new Server( options, serverHandlers );
+    }
+
+
+    /* *
+     *
      *  Constructor
      *
      * */
 
 
     public constructor (
-        options: ServerOptions = { httpPort: 0 }
+        options: ServerOptions = { httpPort: 0 },
+        serverHandlers?: ServerHandlers
     ) {
         this.options = options;
 
@@ -91,18 +121,12 @@ export class Server {
             } );
         }
 
+        this.attachListeners();
+
         this.errorHandler = new ErrorHandler( this );
         this.fileHandler = new FileHandler( this );
 
-        if ( typeof options.cgiPath === 'string' ) {
-            this.cgiHandler = new CGIHandler( this );
-        }
-
-        if ( options.typeScript === true ) {
-            this.typeScriptHandler = new TypeScriptHandler( this );
-        }
-
-        this.attachListeners();
+        this.attachHandlers( serverHandlers );
     }
 
 
@@ -113,7 +137,7 @@ export class Server {
      * */
 
 
-    public readonly cgiHandler?: CGIHandler;
+    public cgiHandler?: CGIHandler;
 
     public readonly errorHandler: ErrorHandler;
 
@@ -127,7 +151,7 @@ export class Server {
 
     public readonly options: ServerOptions;
 
-    public readonly typeScriptHandler?: TypeScriptHandler;
+    public typeScriptHandler?: TypeScriptHandler;
 
 
     /* *
@@ -137,46 +161,55 @@ export class Server {
      * */
 
 
+    protected attachHandlers (
+        serverHandlers?: ServerHandlers
+    ): void {
+
+        if ( serverHandlers?.CGIHandler ) {
+            this.cgiHandler = new serverHandlers.CGIHandler( this );
+        }
+
+        if ( serverHandlers?.TypeScriptHandler ) {
+            this.typeScriptHandler = new serverHandlers.TypeScriptHandler( this );
+        }
+    }
+
+
     private attachListeners (): void {
-        const cgiHandler = this.cgiHandler;
-        const errorHandler = this.errorHandler;
-        const fileHandler = this.fileHandler;
         const http = this.http;
         const https = this.https;
         const log = this.log;
-        const typeScriptHandler = this.typeScriptHandler;
 
-        const onRequest = (
+        const onRequest = async (
             input: ServerInput,
             output: ServerOutput
         ) => {
-            const protocol = ( input.socket instanceof TLS.TLSSocket ? 'https' : 'http' );
-            const url = new URL( ( input.url || '' ), `${protocol}://${input.headers.host}` );
+            const request = new Request( this, input, output );
 
             try {
-                log.info( url.toString() );
+                log.info( request.url.toString() );
 
-                if ( cgiHandler && !output.headersSent ) {
-                    cgiHandler.handleRequest( url, input, output );
+                if ( this.cgiHandler && !output.headersSent ) {
+                    await this.cgiHandler.handleRequest( request );
                 }
 
-                if ( typeScriptHandler && !output.headersSent ) {
-                    typeScriptHandler.handleRequest( url, input, output );
-                }
-
-                if ( !output.headersSent ) {
-                    fileHandler.handleRequest( url, input, output );
+                if ( this.typeScriptHandler && !output.headersSent ) {
+                    await this.typeScriptHandler.handleRequest( request );
                 }
 
                 if ( !output.headersSent ) {
-                    errorHandler.handleRequest( url, input, output, 404 );
+                    await this.fileHandler.handleRequest( request );
+                }
+
+                if ( !output.headersSent ) {
+                    await this.errorHandler.handleRequest( request, 404 );
                 }
             }
             catch ( error ) {
                 log.error( '' + error );
 
                 if ( !output.headersSent ) {
-                    errorHandler.handleRequest( url, input, output, 500 );
+                    await this.errorHandler.handleRequest( request, 500 );
                 }
             }
             finally {

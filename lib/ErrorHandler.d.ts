@@ -9,10 +9,10 @@
   https://typescriptlibs.org/LICENSE.txt
 
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
-import Server, { ServerInput, ServerOutput } from './Server.js';
+import Request from './Request.js';
+import Server from './Server.js';
 export declare class ErrorHandler {
-    constructor(server: Server);
-    server: Server;
-    handleRequest(url: URL, input: ServerInput, output: ServerOutput, statusCode: number): void;
+    constructor(_server: Server);
+    handleRequest(context: Request, statusCode: number): void;
 }
 export default ErrorHandler;

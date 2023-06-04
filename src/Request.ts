@@ -18,8 +18,6 @@
  * */
 
 
-import HTTP from 'node:http';
-
 import Server, { ServerInput, ServerOutput } from './Server.js';
 
 import TLS from 'node:tls';
@@ -57,9 +55,9 @@ export class Request {
 
     public constructor (
         server: Server,
+        input: ServerInput,
         output: ServerOutput
     ) {
-        const input: ServerInput = output.req;
         const protocol: RequestProtocol = ( input.socket instanceof TLS.TLSSocket ? 'https' : 'http' );
 
         this.input = output.req;

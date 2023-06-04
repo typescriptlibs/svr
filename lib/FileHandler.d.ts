@@ -9,11 +9,11 @@
   https://typescriptlibs.org/LICENSE.txt
 
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
-import Server, { ServerInput, ServerOutput } from './Server.js';
+import Request from './Request.js';
+import Server from './Server.js';
 export declare class FileHandler {
     constructor(server: Server);
     rootPath: string;
-    server: Server;
-    handleRequest(url: URL, input: ServerInput, output: ServerOutput): void;
+    handleRequest(request: Request): void;
 }
 export default FileHandler;

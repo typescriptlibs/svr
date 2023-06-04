@@ -20,7 +20,9 @@
 
 import ContentTypes from './ContentTypes.js';
 
-import Server, { ServerInput, ServerOutput } from './Server.js';
+import Request from './Request.js';
+
+import Server from './Server.js';
 
 import System from './System.js';
 
@@ -48,7 +50,6 @@ export class TypeScriptHandler {
         server: Server
     ) {
         this.rootPath = server.options.rootPath || './';
-        this.server = server;
     }
 
 
@@ -61,8 +62,6 @@ export class TypeScriptHandler {
 
     public rootPath: string;
 
-    public server: Server;
-
 
     /* *
      *
@@ -72,11 +71,10 @@ export class TypeScriptHandler {
 
 
     public handleRequest (
-        url: URL,
-        input: ServerInput,
-        output: ServerOutput
+        request: Request
     ): void {
-        const jsPathname = url.pathname;
+        const output = request.output
+        const jsPathname = request.url.pathname;
         const jsExtension = System.fileExtension( jsPathname );
 
         if (

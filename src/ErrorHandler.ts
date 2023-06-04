@@ -18,7 +18,9 @@
  * */
 
 
-import Server, { ServerInput, ServerOutput } from './Server.js';
+import Request from './Request.js';
+
+import Server from './Server.js';
 
 
 /* *
@@ -39,20 +41,10 @@ export class ErrorHandler {
 
 
     public constructor (
-        server: Server
+        _server: Server
     ) {
-        this.server = server;
     }
 
-
-    /* *
-     *
-     *  Properties
-     *
-     * */
-
-
-    public server: Server;
 
     /* *
      *
@@ -62,13 +54,11 @@ export class ErrorHandler {
 
 
     public handleRequest (
-        url: URL,
-        input: ServerInput,
-        output: ServerOutput,
+        context: Request,
         statusCode: number
     ): void {
-        output.statusCode = statusCode;
-        output.end();
+        context.output.statusCode = statusCode;
+        context.output.end();
     }
 
 
