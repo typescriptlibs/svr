@@ -129,19 +129,22 @@ function deleteFolder (
 
 async function exec (
     filePath: string,
-    options?: ExecOptions
+    args: Array<string> = [],
+    options?: ExecOptions,
+    stdin?: ( string | Buffer )
 ): Promise<string> {
     return new Promise( ( resolve, reject ) => {
-        ChildProcess.execFile(
+        const process = ChildProcess.execFile(
             filePath,
-            [],
+            args,
             {
                 shell: true,
                 timeout: 60000,
                 ...options
             },
-            ( error, stdout, stderr ) => ( error || stderr ? reject( error || stderr ) : resolve( stdout ) )
-        )
+            ( error, stdout, stderr ) => ( error ? reject( error ) : resolve( stdout || stderr ) )
+        );
+        process.stdin?.end( stdin );
     } );
 }
 
@@ -184,6 +187,13 @@ function fileExtension (
     const extension = Path.extname( filePath );
 
     return extension ? extension.substring( 1 ) : '';
+}
+
+
+function fileName (
+    filePath: string
+): string {
+    return Path.basename( filePath );
 }
 
 
@@ -328,6 +338,7 @@ export const System = {
     fileContent,
     fileExists,
     fileExtension,
+    fileName,
     filesFrom,
     fileSize,
     folderExists,

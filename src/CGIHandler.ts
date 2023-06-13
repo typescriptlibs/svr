@@ -151,13 +151,14 @@ export class CGIHandler {
             env
         };
 
+        let stdin: ( Buffer | undefined );
+
         if ( input.method === 'POST' || input.method === 'PUT' ) {
-            options.input = await request.body();
+            stdin = await request.body();
         }
 
         // Execute CGI script
-
-        const result = await System.exec( cgiScript, options );
+        const result = await System.exec( cgiScript, [], options, stdin );
 
         output.statusCode = 200;
 
