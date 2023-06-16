@@ -22,7 +22,7 @@ import Request from './Request.js';
 
 import Server from './Server.js';
 
-import System, { ExecOptions } from './System.js';
+import System, { ExecOptions, ExecResult } from './System.js';
 
 
 /* *
@@ -151,16 +151,21 @@ export class CGIHandler {
             env
         };
 
-        let stdin: ( Buffer | undefined );
-
         if ( input.method === 'POST' || input.method === 'PUT' ) {
-            stdin = await request.body();
+            options.input = await request.body();
         }
 
         // Execute CGI script
-        const result = await System.exec( cgiScript, [], options, stdin );
 
-        output.statusCode = 200;
+        let result = '';
+
+        try {
+            result = await System.exec( cgiScript, [], options );
+            output.statusCode = 200;
+        } catch ( e ) {
+            request.server.log.error( e );
+            output.statusCode = 500;
+        }
 
         // Search for HTTP headers in result (#2)
 

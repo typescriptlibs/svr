@@ -18,9 +18,11 @@
  * */
 
 
+import OpenSSL from './OpenSSL.js';
+
 import { Server, ServerOptions } from './Server.js';
 
-import System from './System.js';
+import System, { ExecResult } from './System.js';
 
 
 /* *
@@ -41,15 +43,15 @@ export const HELP = [
     '',
     '  --cgi [path]         Activates CGI path for web browsers.',
     '',
-    '  --help, -h           Prints this help text.',
+    '  --help, -h           Prints only this help text.',
     '',
     '  --http [port]        Activates HTTP port. Port number is optional.',
     '',
     '  --https [port]       Activates HTTPS port. Port number is optional.',
     '',
-    '  --https-cert [file]  File path to the HTTPS certificate.',
+    '  --https-cert [file]  File path to the HTTPS certificate. Optional.',
     '',
-    '  --https-key [file]   File path to the HTTPS key.',
+    '  --https-key [file]   File path to the HTTPS key. Optional.',
     '',
     '  --root [folder]      Root folder with files for web browsers.',
     '',
@@ -58,7 +60,7 @@ export const HELP = [
     '  --typescript         Activates transpile of TypeScript files for missing',
     '                       JavaScript files.',
     '',
-    '  --version, -v        Prints the version string.',
+    '  --version, -v        Prints only the version string.',
     '',
     'EXAMPLES:',
     '',
@@ -180,21 +182,47 @@ export class CLI {
             }
         }
 
-        if ( args['https-cert'] ) {
+        if (
+            args['https-cert'] &&
+            args['https-key']
+        ) {
             const certPath = args['https-cert'].toString();
 
             if ( System.fileExists( certPath ) ) {
                 // set file content, not path (#1)
                 options.httpsCert = System.fileContent( certPath );
             }
-        }
 
-        if ( args['https-key'] ) {
             const keyPath = args['https-key'].toString();
 
             if ( System.fileExists( keyPath ) ) {
                 // set file content, not path (#1)
                 options.httpsKey = System.fileContent( keyPath );
+            }
+        }
+        else if ( args.https ) {
+            const openSSL = new OpenSSL();
+
+            console.info( 'Generating HTTPS signature' );
+
+            try {
+                const signature = await openSSL.getSignature();
+
+                options.httpsKey = signature.key;
+                options.httpsCert = signature.cert;
+            }
+            catch ( e ) {
+                if ( e instanceof Error ) {
+                    console.error( e );
+                }
+                else {
+                    const result = e as ExecResult;
+
+                    console.info( result.stdout );
+                    console.error( result.stderr );
+                    console.error( result.error );
+                }
+                process.exit( 1 );
             }
         }
 

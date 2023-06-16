@@ -29,29 +29,17 @@ import System from './System.js';
 
 
 export interface OpenSSLSignature {
-    key: string;
     cert: string;
+    key: string;
 }
 
 export interface OpenSSLOptions {
-    country: string;
-    division: string;
-    organisation: string;
-    state: string;
-    city: string;
+    country?: string;
+    division?: string;
+    organisation?: string;
+    state?: string;
+    city?: string;
 }
-
-
-/* *
- *
- *  Constants
- *
- * */
-
-
-const CERT_PATTERN = /-----BEGIN CERTIFICATE-----[\s\w=+\/]+-----END CERTIFICATE-----/gs;
-
-const KEY_PATTERN = /-----BEGIN PRIVATE KEY-----[\s\w=+\/]+-----END PRIVATE KEY-----/gs;
 
 
 /* *
@@ -60,7 +48,9 @@ const KEY_PATTERN = /-----BEGIN PRIVATE KEY-----[\s\w=+\/]+-----END PRIVATE KEY-
  *
  * */
 
+
 export class OpenSSL {
+
 
     /* *
      *
@@ -68,18 +58,17 @@ export class OpenSSL {
      *
      * */
 
+
     public constructor (
         options: Partial<OpenSSLOptions> = {}
     ) {
         this.options = {
-            city: 'Brussels',
-            country: 'EU',
             division: 'SVR',
             organisation: 'TypeScriptLibs',
-            state: 'Belgium',
             ...options
         };
     }
+
 
     /* *
      *
@@ -87,15 +76,18 @@ export class OpenSSL {
      *
      * */
 
+
     public readonly options: OpenSSLOptions;
 
     private signature?: OpenSSLSignature;
+
 
     /* *
      *
      *  Functions
      *
      * */
+
 
     public async getSignature (
         domain: string = 'localhost'
@@ -108,45 +100,76 @@ export class OpenSSL {
         const options = this.options;
         const subject = [
             '',
-            `C=${options.country}`,
             `CN=${domain}`,
-            `L=${options.city}`,
-            `O=${options.organisation}`,
-            `OU=${options.division}`
         ];
 
-        const signature = await System.exec(
-            'openssl',
-            [
-                'req',
-                '-days', '365',
-                '-newkey', 'rsa:4096',
-                '-nodes',
-                '-subj', subject.join( '/' ),
-                '-x509',
-            ],
-            {}
-        );
+        if ( options.country ) {
+            subject.push( `C=${options.country}` );
+        }
 
-        const signatureCert = signature.match( CERT_PATTERN );
-        const signatureKey = signature.match( KEY_PATTERN );
+        if ( options.city ) {
+            subject.push( `L=${options.city}` );
+        }
 
-        if ( !signatureCert || !signatureKey ) {
+        if ( options.organisation ) {
+            subject.push( `O=${options.organisation}` );
+        }
+
+        if ( options.division ) {
+            subject.push( `OU=${options.division}` );
+        }
+
+        // @todo Not compatible with common implementations yet.
+        // const subjectAltNames = [
+        //     `DNS:${domain}`,
+        //     'IP:::1',
+        //     'IP:127.0.0.1'
+        // ];
+
+        const version = parseInt( await System.exec( 'openssl', ['version'] ) );
+        const temporaryFolder = await System.temporaryFolder();
+        const keyFile = System.joinPath( temporaryFolder, 'key.pem' );
+        const certFile = System.joinPath( temporaryFolder, 'crt.pem' );
+        await System.exec( 'openssl', [
+            'req',
+            // @todo Not compatible with common implementations yet.
+            // '-addext', `subjectAltName=${subjectAltNames.join( ',' )}`,
+            '-days', '365',
+            '-new',
+            '-keyform', 'PEM',
+            '-keyout', keyFile,
+            '-newkey', 'rsa:4096',
+            ( version > 2 ? '-noenc' : '-nodes' ),
+            '-out', certFile,
+            '-outform', 'PEM',
+            '-subj', subject.join( '/' ),
+            '-utf8',
+            '-x509',
+        ] );
+
+        const cert = await System.fileContent( certFile );
+        const key = await System.fileContent( keyFile );
+
+        await System.deleteFolder( temporaryFolder );
+
+        if ( !cert || !key ) {
             throw new Error( 'OpenSSL self-signed process failed.' );
         }
 
         return {
-            key: signatureKey[0],
-            cert: signatureCert[0]
+            cert,
+            key
         };
     }
 
 }
+
 
 /* *
  *
  *  Default Export
  *
  * */
+
 
 export default OpenSSL;

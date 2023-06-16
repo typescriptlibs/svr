@@ -29,7 +29,7 @@ import test from '@typescriptlibs/tst';
 
 
 test( 'Test CGIHandler body', async ( assert: test.Assert ) => {
-    const response = await fetch( 'http://localhost:9876/cgi-bin/test.sh' );
+    const response = await fetch( 'https://localhost:9876/cgi-bin/test.sh' );
 
     assert.strictEqual(
         response.headers.get( 'Content-Type' ),
