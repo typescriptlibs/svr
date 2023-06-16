@@ -22,7 +22,7 @@ import Request from './Request.js';
 
 import Server from './Server.js';
 
-import System, { ExecOptions } from './System.js';
+import System, { ExecOptions, ExecResult } from './System.js';
 
 
 /* *
@@ -157,9 +157,15 @@ export class CGIHandler {
 
         // Execute CGI script
 
-        const result = await System.exec( cgiScript, options );
+        let result = '';
 
-        output.statusCode = 200;
+        try {
+            result = await System.exec( cgiScript, [], options );
+            output.statusCode = 200;
+        } catch ( e ) {
+            request.server.log.error( e );
+            output.statusCode = 500;
+        }
 
         // Search for HTTP headers in result (#2)
 

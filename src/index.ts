@@ -11,6 +11,7 @@
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
 
 export * from './ContentTypes.js';
+export * from './OpenSSL.js';
 export * from './Request.js';
 export * from './Server.js';
 export * from './System.js';

@@ -38,6 +38,13 @@ import URL from 'node:url';
 
 export type ExecOptions = ChildProcess.ExecFileSyncOptions;
 
+export interface ExecResult {
+    error?: ChildProcess.ExecFileException;
+    stderr: string;
+    stdin?: ( ArrayBufferView | string );
+    stdout: string;
+}
+
 
 /* *
  *
@@ -49,6 +56,8 @@ export type ExecOptions = ChildProcess.ExecFileSyncOptions;
 const CWD = process.cwd();
 
 const EOL = OS.EOL;
+
+const FSP = FS.promises;
 
 const PATH = joinPath( folderName( pathFromURL( import.meta.url ) ), '..' );
 
@@ -124,24 +133,50 @@ function deleteFolder (
     for ( const folder of foldersFrom( path ) ) {
         FS.rmdirSync( joinPath( path, folder ) );
     }
+
+    FS.rmdirSync( path );
 }
 
 
 async function exec (
     filePath: string,
-    options?: ExecOptions
-): Promise<string> {
+    args?: Array<string>,
+    options?: ExecOptions,
+    fullResult?: boolean
+): Promise<string>;
+async function exec (
+    filePath: string,
+    args: ( Array<string> | undefined ),
+    options: ( ExecOptions | undefined ),
+    fullResult: true
+): Promise<ExecResult>;
+async function exec (
+    filePath: string,
+    args: Array<string> = [],
+    options?: ExecOptions,
+    fullResult?: boolean
+): Promise<( ExecResult | string )> {
     return new Promise( ( resolve, reject ) => {
-        ChildProcess.execFile(
+        const process = ChildProcess.execFile(
             filePath,
-            [],
+            args,
             {
                 shell: true,
                 timeout: 60000,
                 ...options
             },
-            ( error, stdout, stderr ) => ( error || stderr ? reject( error || stderr ) : resolve( stdout ) )
-        )
+            ( error, stdout, stderr ) => {
+                const result = { stdin: options?.input, stderr, stdout };
+
+                if ( error ) {
+                    reject( fullResult ? { error, ...result } : error );
+                }
+                else {
+                    resolve( fullResult ? result : result.stdout );
+                }
+            }
+        );
+        process.stdin?.end( options?.input );
     } );
 }
 
@@ -184,6 +219,13 @@ function fileExtension (
     const extension = Path.extname( filePath );
 
     return extension ? extension.substring( 1 ) : '';
+}
+
+
+function fileName (
+    filePath: string
+): string {
+    return Path.basename( filePath );
 }
 
 
@@ -239,6 +281,7 @@ function fileSize (
 
     return 0;
 }
+
 
 function folderExists (
     folderPath: string,
@@ -308,6 +351,11 @@ function pathFromURL (
 }
 
 
+function temporaryFolder (): Promise<string> {
+    return FSP.mkdtemp( Path.join( OS.tmpdir(), 'svr-' ) );
+}
+
+
 /* *
  *
  *  Default Export
@@ -328,12 +376,14 @@ export const System = {
     fileContent,
     fileExists,
     fileExtension,
+    fileName,
     filesFrom,
     fileSize,
     folderExists,
     folderName,
     joinPath,
     pathFromURL,
+    temporaryFolder,
 };
 
 export default System;
