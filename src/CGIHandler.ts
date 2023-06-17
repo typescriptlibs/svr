@@ -122,7 +122,7 @@ export class CGIHandler {
             SERVER_NAME: url.hostname,
             SERVER_PORT: url.port,
             SERVER_PROTOCOL: 'HTTP/1.1',
-            SERVER_SOFTWARE: `SVR/${System.VERSION}`
+            SERVER_SOFTWARE: `SVR/${System.PACKAGE_VERSION}`
         };
 
         // Add HTTP header as environment variables

@@ -34,7 +34,7 @@ import System, { ExecResult } from './System.js';
  * */
 
 
-export const VERSION = `Version ${System.VERSION}`;
+export const VERSION = `Version ${System.PACKAGE_VERSION}`;
 
 export const HELP = [
     `SVR: Simple HTTP(S) Server - ${VERSION}`,
