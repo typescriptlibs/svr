@@ -18,6 +18,8 @@
  * */
 
 
+import Network from './Network.js';
+
 import OpenSSL from './OpenSSL.js';
 
 import { Server, ServerOptions } from './Server.js';
@@ -170,7 +172,7 @@ export class CLI {
             options.httpPort = parseInt( args.http.toString(), 10 );
 
             if ( isNaN( options.httpPort ) ) {
-                options.httpPort = 0;
+                options.httpPort = await ( Network.freePort( 8000 ) );
             }
         }
 
@@ -178,7 +180,7 @@ export class CLI {
             options.httpsPort = parseInt( args.https.toString(), 10 );
 
             if ( isNaN( options.httpsPort ) ) {
-                options.httpsPort = 0;
+                options.httpsPort = await ( Network.freePort( 8080 ) );
             }
         }
 
