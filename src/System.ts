@@ -76,7 +76,7 @@ const PATH = joinPath( folderName( pathFromURL( import.meta.url ) ), '..' );
 
 const SEPARATOR = Path.sep;
 
-const VERSION = extractPackageVersion();
+const PACKAGE_VERSION = extractPackageVersion();
 
 
 /* *
@@ -416,7 +416,7 @@ export const System = {
     EOL,
     PATH,
     SEPARATOR,
-    VERSION,
+    PACKAGE_VERSION,
     args,
     deleteFolder,
     exec,

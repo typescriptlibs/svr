@@ -63,12 +63,13 @@ function connect (
 
 async function freePort (
     firstPort = 1000,
-    lastPort = 65536
+    lastPort = 65536,
+    host?: string
 ): Promise<number> {
 
     for ( let port = firstPort; port < lastPort; ++port ) {
         try {
-            ( await connect( port ) ).end();
+            ( await connect( port, host ) ).end();
         }
         catch ( e ) {
             if ( ( e as NetworkError ).code === 'ECONNREFUSED' ) {
