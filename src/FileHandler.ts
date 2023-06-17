@@ -75,11 +75,22 @@ export class FileHandler {
 
         let localPath = System.joinPath( this.rootPath, request.url.pathname );
 
+        if ( System.fileName( localPath ).startsWith( '.' ) ) {
+            request.server.errorHandler.handleRequest( request, 404 );
+            return;
+        }
+
         if ( System.folderExists( localPath ) ) {
+            if ( !System.permissions( localPath ).other.x ) {
+                return;
+            }
             localPath = System.joinPath( localPath, 'index.html' );
         }
 
         if ( System.fileExists( localPath ) ) {
+            if ( !System.permissions( localPath ).other.r ) {
+                return;
+            }
             output.statusCode = 200;
             output.setHeader( 'Content-Type', ContentTypes.getType( localPath ) );
             output.setHeader( 'Content-Length', System.fileSize( localPath ) );

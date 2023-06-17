@@ -45,6 +45,19 @@ export interface ExecResult {
     stdout: string;
 }
 
+export interface Permission {
+    mode: number;
+    r: boolean;
+    w: boolean;
+    x: boolean;
+}
+
+export interface Permissions {
+    group: Permission;
+    other: Permission;
+    owner: Permission;
+}
+
 
 /* *
  *
@@ -196,7 +209,7 @@ function fileContent (
 ): string {
     return (
         FS.existsSync( filePath ) &&
-        ( followSymbolicLink ? FS.lstatSync( filePath ) : FS.statSync( filePath ) ).isFile() &&
+        ( followSymbolicLink ? FS.statSync( filePath ) : FS.lstatSync( filePath ) ).isFile() &&
         FS.readFileSync( filePath, 'utf-8' )
     ) || '';
 }
@@ -208,7 +221,7 @@ function fileExists (
 ): boolean {
     return (
         FS.existsSync( filePath ) &&
-        ( followSymbolicLink ? FS.lstatSync( filePath ) : FS.statSync( filePath ) ).isFile()
+        ( followSymbolicLink ? FS.statSync( filePath ) : FS.lstatSync( filePath ) ).isFile()
     );
 }
 
@@ -271,8 +284,9 @@ function fileSize (
     filePath: string,
     followSymbolicLink?: boolean
 ): number {
+
     if ( FS.existsSync( filePath ) ) {
-        const stat = ( followSymbolicLink ? FS.lstatSync( filePath ) : FS.statSync( filePath ) );
+        const stat = ( followSymbolicLink ? FS.statSync( filePath ) : FS.lstatSync( filePath ) );
 
         if ( stat.isFile() ) {
             return stat.size;
@@ -289,7 +303,7 @@ function folderExists (
 ): boolean {
     return (
         FS.existsSync( folderPath ) &&
-        ( followSymbolicLink ? FS.lstatSync( folderPath ) : FS.statSync( folderPath ) ).isDirectory()
+        ( followSymbolicLink ? FS.statSync( folderPath ) : FS.lstatSync( folderPath ) ).isDirectory()
     );
 }
 
@@ -351,6 +365,40 @@ function pathFromURL (
 }
 
 
+function permissions (
+    path: string,
+    followSymbolicLink?: boolean
+): Permissions {
+    const stat = ( followSymbolicLink ? FS.statSync( path ) : FS.lstatSync( path ) );
+    const mode = stat.mode;
+
+    const ownerMode = mode >> 6 & 7
+    const groupMode = mode >> 3 & 7;
+    const otherMode = mode >> 0 & 7;
+
+    return {
+        group: {
+            mode: groupMode,
+            r: !!( groupMode & 4 ),
+            w: !!( groupMode & 2 ),
+            x: !!( groupMode & 1 ),
+        },
+        other: {
+            mode: otherMode,
+            r: !!( otherMode & 4 ),
+            w: !!( otherMode & 2 ),
+            x: !!( otherMode & 1 ),
+        },
+        owner: {
+            mode: ownerMode,
+            r: !!( ownerMode & 4 ),
+            w: !!( ownerMode & 2 ),
+            x: !!( ownerMode & 1 ),
+        },
+    };
+}
+
+
 function temporaryFolder (): Promise<string> {
     return FSP.mkdtemp( Path.join( OS.tmpdir(), 'svr-' ) );
 }
@@ -383,6 +431,7 @@ export const System = {
     folderName,
     joinPath,
     pathFromURL,
+    permissions,
     temporaryFolder,
 };
 

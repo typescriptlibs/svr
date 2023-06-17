@@ -22,7 +22,7 @@ import Request from './Request.js';
 
 import Server from './Server.js';
 
-import System, { ExecOptions, ExecResult } from './System.js';
+import System, { ExecOptions } from './System.js';
 
 
 /* *
@@ -96,8 +96,12 @@ export class CGIHandler {
 
         // If CGI script not found
 
-        if ( !System.fileExists( cgiScript ) ) {
+        if (
+            !System.fileExists( cgiScript ) ||
+            !System.permissions( cgiScript ).other.x
+        ) {
             request.server.errorHandler.handleRequest( request, 404 );
+            return;
         }
 
         // Set environment variables
