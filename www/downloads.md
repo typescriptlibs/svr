@@ -2,6 +2,6 @@ Downloads
 =========
 
 To download the package, go to
-[typescriptlibs.org/package/tst.html](https://typescriptlibs.org/package/tst.html).
+[typescriptlibs.org/package/svr.html](https://typescriptlibs.org/package/svr.html).
 
-<script type="text/javascript">location.href="https://typescriptlibs.org/package/tst.html";</script>
+<script type="text/javascript">location.href="https://typescriptlibs.org/package/svr.html";</script>
