@@ -16,16 +16,17 @@ other files to web browsers.
 Examples
 --------
 
-``` Shell
-cd html
-npx svr
-```
+- Start the server with `html` folder as website root:
 
-*or*
+  ``` Shell
+  npx svr --https --root html
+  ```
 
-``` Shell
-npx svr --root html
-```
+- Start the server with log files:
+
+  ``` Shell
+  npx svr 1>> svr.log 2>> svr-error.log
+  ```
 
 
 

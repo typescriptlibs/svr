@@ -20,7 +20,7 @@
 
 import Request from './Request.js';
 
-import Server from './Server.js';
+import Server, { ServerInput, ServerOutput } from './Server.js';
 
 import System from './System.js';
 
@@ -55,11 +55,11 @@ export class ErrorHandler {
      * */
 
 
-    public handleRequest (
-        request: Request,
+    public handleIO (
+        _input: ServerInput,
+        output: ServerOutput,
         statusCode: number
     ): void {
-        const output = request.output;
 
         output.statusCode = statusCode;
         output.setHeader( 'Content-Type', 'text/html; charset=utf-8' );
@@ -75,10 +75,17 @@ export class ErrorHandler {
             '</head>',
             '<body>',
             `<center><h1>${title}</h1></center>`,
-            `<hr><center>SVR/${System.PACKAGE_VERSION}</center>`,
+            `<hr><center>svr/${System.PACKAGE_VERSION}</center>`,
             '</body>',
             '</html>'
         ].join( '\n' ) );
+    }
+
+    public handleRequest (
+        request: Request,
+        statusCode: number
+    ): void {
+        this.handleIO( request.input, request.output, statusCode );
     }
 
 

@@ -32,6 +32,8 @@ import HTTPS from 'node:https';
 
 import Log from './Log.js';
 
+import Network from './Network.js';
+
 import Request from './Request.js';
 
 
@@ -110,23 +112,33 @@ export class Server {
 
         this.log = new Log( this );
 
-        if ( typeof options.httpPort === 'number' ) {
-            this.http = HTTP.createServer()
+        try {
+
+            if ( typeof options.httpPort === 'number' ) {
+                this.http = HTTP.createServer()
+            }
+
+            if ( typeof options.httpsPort === 'number' ) {
+                this.https = HTTPS.createServer( {
+                    cert: options.httpsCert,
+                    key: options.httpsKey
+                } );
+            }
+
+            this.errorHandler = new ErrorHandler( this );
+
+            this.fileHandler = new FileHandler( this );
+
+            this.attachHandlers( serverHandlers );
+
+            this.attachListeners();
         }
+        catch ( error ) {
 
-        if ( typeof options.httpsPort === 'number' ) {
-            this.https = HTTPS.createServer( {
-                cert: options.httpsCert,
-                key: options.httpsKey
-            } );
+            this.log.error( error );
+
+            throw error;
         }
-
-        this.attachListeners();
-
-        this.errorHandler = new ErrorHandler( this );
-        this.fileHandler = new FileHandler( this );
-
-        this.attachHandlers( serverHandlers );
     }
 
 
@@ -184,10 +196,10 @@ export class Server {
             input: ServerInput,
             output: ServerOutput
         ) => {
-            const request = new Request( this, input, output );
+            let request: ( Request | undefined );
 
             try {
-                log.info( request.url.toString() );
+                request = new Request( this, input, output );
 
                 if ( this.cgiHandler && !output.headersSent ) {
                     await this.cgiHandler.handleRequest( request );
@@ -206,13 +218,17 @@ export class Server {
                 }
             }
             catch ( error ) {
-                log.error( '' + error );
+
+                log.error( error, input );
 
                 if ( !output.headersSent ) {
-                    await this.errorHandler.handleRequest( request, 500 );
+                    await this.errorHandler.handleIO( input, output, 500 );
                 }
             }
             finally {
+
+                log.request( input, output );
+
                 output.end();
             }
         };
@@ -224,9 +240,7 @@ export class Server {
             const protocol = ( httpServer instanceof HTTPS.Server ? 'https' : 'http' );
 
             if ( address !== null ) {
-                address
-                log.info(
-                    'Listening on',
+                log.listening(
                     typeof address === 'string' ?
                         address :
                         `${protocol}://localhost:${address.port}`
@@ -246,31 +260,66 @@ export class Server {
     }
 
 
-    public start () {
+    public async start (): Promise<void> {
         const http = this.http;
         const https = this.https;
         const options = this.options;
 
-        if ( http ) {
-            http.listen( options.httpPort );
-        }
+        try {
 
-        if ( https ) {
-            https.listen( options.httpsPort );
+            if ( http ) {
+                const httpPort = options.httpPort;
+
+                if (
+                    httpPort &&
+                    await Network.usedPort( httpPort )
+                ) {
+                    throw new Error( `Port already in use. (${httpPort})` );
+                }
+
+                http.listen( httpPort );
+            }
+
+            if ( https ) {
+                const httpsPort = options.httpsPort;
+
+                if (
+                    httpsPort &&
+                    await Network.usedPort( httpsPort )
+                ) {
+                    throw new Error( `Port already in use. (${httpsPort})` );
+                }
+
+                https.listen( options.httpsPort );
+            }
+        }
+        catch ( error ) {
+
+            this.log.error( error );
+
+            throw error;
         }
     }
 
 
-    public stop () {
+    public async stop (): Promise<void> {
         const http = this.http;
         const https = this.https;
 
-        if ( http ) {
-            http.closeAllConnections();
-        }
+        try {
+            if ( http ) {
+                http.closeAllConnections();
+            }
 
-        if ( https ) {
-            https.closeAllConnections();
+            if ( https ) {
+                https.closeAllConnections();
+            }
+        }
+        catch ( error ) {
+
+            this.log.error( error );
+
+            throw error;
         }
     }
 

@@ -27,6 +27,16 @@ import System, { ExecOptions } from './System.js';
 
 /* *
  *
+ *  Constants
+ *
+ * */
+
+
+const ERROR_SCOPE = 'CGIHandler.handleRequest';
+
+
+/* *
+ *
  *  Class
  *
  * */
@@ -76,10 +86,13 @@ export class CGIHandler {
         const rootPath = this.rootPath;
         const input = request.input;
         const output = request.output;
+        const server = request.server;
         const url = request.url;
+        const errorHandler = server.errorHandler;
+        const log = server.log;
         const urlPath = url.pathname;
 
-        // If no CGI script requested
+        // Exit if no CGI script requested
 
         if ( !urlPath.substring( 1 ).startsWith( cgiPath ) ) {
             return;
@@ -100,7 +113,7 @@ export class CGIHandler {
             !System.fileExists( cgiScript ) ||
             !System.permissions( cgiScript ).other.x
         ) {
-            request.server.errorHandler.handleRequest( request, 404 );
+            request.errorResponse( 403, 'Script denied', ERROR_SCOPE );
             return;
         }
 
@@ -156,7 +169,7 @@ export class CGIHandler {
         };
 
         if ( input.method === 'POST' || input.method === 'PUT' ) {
-            options.input = await request.body();
+            options.input = await request.getBody();
         }
 
         // Execute CGI script
@@ -167,8 +180,8 @@ export class CGIHandler {
             result = await System.exec( cgiScript, [], options );
             output.statusCode = 200;
         } catch ( e ) {
-            request.server.log.error( e );
-            output.statusCode = 500;
+            request.errorResponse( 502, e, ERROR_SCOPE );
+            return;
         }
 
         // Search for HTTP headers in result (#2)
@@ -176,8 +189,7 @@ export class CGIHandler {
         const resultHeadersEnd = result.indexOf( '\n\n' );
 
         if ( resultHeadersEnd === -1 ) {
-            output.setHeader( 'Content-Lengh', result.length );
-            output.end( result );
+            request.endResponse( result );
         }
 
         // Transfer HTTP headers
@@ -192,13 +204,9 @@ export class CGIHandler {
             output.setHeader( resultHeader[1], resultHeader[2] );
         }
 
-        // Overwrite Content-Length with our result
-
-        output.setHeader( 'Content-Lengh', resultBody.length );
-
         // Write HTTP body
 
-        output.end( resultBody );
+        request.endResponse( resultBody );
     }
 
 

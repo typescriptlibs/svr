@@ -29,6 +29,18 @@ import System from './System.js';
 
 /* *
  *
+ *  Constants
+ *
+ * */
+
+
+const ERROR_SCOPE = 'FileHandler.handleRequest';
+
+const DOT_PATTERN = /(?:^|\/)\.[^\.\/\\]/;
+
+
+/* *
+ *
  *  Class
  *
  * */
@@ -71,30 +83,51 @@ export class FileHandler {
     public handleRequest (
         request: Request
     ): void {
+        const input = request.input;
         const output = request.output;
+        const server = request.server;
+        const errorHandler = server.errorHandler;
+        const log = server.log;
+        const method = input.method;
+
+        if (
+            method === 'POST' ||
+            method === 'PUT'
+        ) {
+            request.errorResponse( 405, `Unsupported method: ${method}`, ERROR_SCOPE );
+            return;
+        }
 
         let localPath = System.joinPath( this.rootPath, request.url.pathname );
 
-        if ( System.fileName( localPath ).startsWith( '.' ) ) {
-            request.server.errorHandler.handleRequest( request, 404 );
+        if ( DOT_PATTERN.test( localPath ) ) {
+            request.errorResponse( 403, `Forbidden dot-file: ${localPath}`, ERROR_SCOPE );
             return;
         }
 
         if ( System.folderExists( localPath ) ) {
+
             if ( !System.permissions( localPath ).other.x ) {
+                request.errorResponse( 403, `Folder denied: ${localPath}`, ERROR_SCOPE );
                 return;
             }
+
             localPath = System.joinPath( localPath, 'index.html' );
         }
 
         if ( System.fileExists( localPath ) ) {
-            if ( !System.permissions( localPath ).other.r ) {
+            const permissions = System.permissions( localPath );
+
+            if ( !permissions.other.r || permissions.other.x ) {
+                request.errorResponse( 403, `File denied: ${localPath}`, ERROR_SCOPE );
                 return;
             }
+
+            const content = System.fileContent( localPath )
+
             output.statusCode = 200;
             output.setHeader( 'Content-Type', ContentTypes.getType( localPath ) );
-            output.setHeader( 'Content-Length', System.fileSize( localPath ) );
-            output.end( System.fileContent( localPath ) );
+            request.endResponse( content );
         }
     }
 

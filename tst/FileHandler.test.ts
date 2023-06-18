@@ -34,12 +34,12 @@ test( 'Test FileHandler dot-files', async ( assert: test.Assert ) => {
     assert.strictEqual(
         response.headers.get( 'Content-Type' ),
         'text/html; charset=utf-8',
-        'Header of CGI response should contain HTML content type and UTF-8.'
+        'Response header should contain HTML content type and UTF-8.'
     );
 
     assert.strictEqual(
         response.status,
-        404,
+        403,
         'HTTP status should not reveal file existence.'
     );
 } );
