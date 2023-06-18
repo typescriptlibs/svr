@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -11,9 +11,9 @@
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
 import Request from './Request.js';
 import Server from './Server.js';
-export declare class TypeScriptHandler {
+export declare class TSHandler {
     constructor(server: Server);
     rootPath: string;
     handleRequest(request: Request): void;
 }
-export default TypeScriptHandler;
+export default TSHandler;

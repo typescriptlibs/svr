@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -10,9 +10,10 @@
 
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
 import Request from './Request.js';
-import Server from './Server.js';
+import Server, { ServerInput, ServerOutput } from './Server.js';
 export declare class ErrorHandler {
     constructor(_server: Server);
+    handleIO(_input: ServerInput, output: ServerOutput, statusCode: number): void;
     handleRequest(request: Request, statusCode: number): void;
 }
 export default ErrorHandler;

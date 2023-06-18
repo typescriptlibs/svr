@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -20,6 +20,8 @@ export declare class Request {
     readonly protocol: RequestProtocol;
     readonly server: Server;
     readonly url: URL;
-    body(): Promise<Buffer>;
+    endResponse(content: string): void;
+    errorResponse(statusCode: number, logError?: unknown, logScope?: string): void;
+    getBody(): Promise<Buffer>;
 }
 export default Request;

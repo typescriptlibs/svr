@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -9,15 +9,14 @@
   https://typescriptlibs.org/LICENSE.txt
 
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
-import System from './System.js';
+import { Server } from './Server.js';
 export declare const VERSION: string;
 export declare const HELP: string[];
 export declare class CLI {
     static run(argv: Array<string>): Promise<void>;
-    constructor(argv: Array<string>, system: typeof System);
+    constructor(argv: Array<string>);
     readonly args: Record<string, (boolean | string | Array<string>)>;
-    readonly rootPath: string;
-    readonly system: typeof System;
+    server?: Server;
     run(): Promise<void>;
 }
 export default CLI;

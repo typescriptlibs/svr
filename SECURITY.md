@@ -6,12 +6,12 @@ Security Policy
 Supported Versions
 ------------------
 
-The following versions of @typescriptlibs/svr are currently being supported with security updates.
+The following versions of Svr are currently being supported with security updates.
 
 | Version | Supported |
 | ------- | --------- |
-| 0.1.x   | yes       |
-| < 0.1.0 | no        |
+| 0.2.x   | yes       |
+| < 0.2.0 | no        |
 
 
 

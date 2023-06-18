@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -9,12 +9,14 @@
   https://typescriptlibs.org/LICENSE.txt
 
 \*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*i*/
-import Server from './Server.js';
+import Server, { ServerInput, ServerOutput } from './Server.js';
 export declare class Log {
+    static dateString(): string;
+    static error(error: unknown, input?: ServerInput, source?: string): void;
     constructor(server: Server);
     server: Server;
-    protected dateString(): string;
-    error(error: unknown): void;
-    info(...message: Array<unknown>): void;
+    error(error: unknown, input?: ServerInput, scope?: string): void;
+    listening(address: string): void;
+    request(input: ServerInput, output: ServerOutput): void;
 }
 export default Log;

@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -12,7 +12,7 @@
 /// <reference types="node" resolution-mode="require"/>
 /// <reference types="node" resolution-mode="require"/>
 import type CGIHandler from './CGIHandler.js';
-import type TypeScriptHandler from './TypeScriptHandler.js';
+import type TSHandler from './TSHandler.js';
 import ErrorHandler from './ErrorHandler.js';
 import FileHandler from './FileHandler.js';
 import HTTP from 'node:http';
@@ -20,7 +20,7 @@ import HTTPS from 'node:https';
 import Log from './Log.js';
 export interface ServerHandlers {
     CGIHandler?: typeof CGIHandler;
-    TypeScriptHandler?: typeof TypeScriptHandler;
+    TSHandler?: typeof TSHandler;
 }
 export type ServerInput = HTTP.IncomingMessage;
 export interface ServerOptions {
@@ -30,7 +30,7 @@ export interface ServerOptions {
     httpsKey?: string;
     httpsPort?: number;
     rootPath?: string;
-    typeScript?: boolean;
+    ts?: boolean;
 }
 export type ServerOutput = HTTP.ServerResponse;
 export declare class Server {
@@ -43,10 +43,10 @@ export declare class Server {
     readonly https?: HTTPS.Server;
     readonly log: Log;
     readonly options: ServerOptions;
-    typeScriptHandler?: TypeScriptHandler;
+    typeScriptHandler?: TSHandler;
     protected attachHandlers(serverHandlers?: ServerHandlers): void;
     private attachListeners;
-    start(): void;
-    stop(): void;
+    start(): Promise<void>;
+    stop(): Promise<void>;
 }
 export default Server;
