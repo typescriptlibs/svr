@@ -78,7 +78,25 @@ async function freePort (
         }
     }
 
-    throw new Error( 'No socket found' );
+    throw new Error( 'No free port found' );
+}
+
+
+async function usedPort (
+    port: number,
+    host?: string
+): Promise<boolean> {
+
+    try {
+        ( await connect( port, host ) ).end();
+    }
+    catch ( e ) {
+        if ( ( e as NetworkError ).code === 'ECONNREFUSED' ) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 
@@ -92,6 +110,7 @@ async function freePort (
 export const Network = {
     connect,
     freePort,
+    usedPort,
 };
 
 export default Network;

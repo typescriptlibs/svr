@@ -18,6 +18,8 @@
  * */
 
 
+import Log from './Log.js';
+
 import Network from './Network.js';
 
 import OpenSSL from './OpenSSL.js';
@@ -91,7 +93,13 @@ export class CLI {
     public static async run (
         argv: Array<string>
     ): Promise<void> {
-        return new CLI( argv, System ).run();
+
+        process.on( 'SIGQUIT', Log.error );
+        process.on( 'SIGTERM', Log.error );
+
+        return new CLI( argv )
+            .run()
+            .catch( () => process.exit( 1 ) );
     }
 
 
@@ -103,12 +111,9 @@ export class CLI {
 
 
     public constructor (
-        argv: Array<string>,
-        system: typeof System
+        argv: Array<string>
     ) {
         this.args = System.args( argv );
-        this.rootPath = ( typeof this.args.root === 'string' ? this.args.root : './' );
-        this.system = system;
     }
 
 
@@ -121,9 +126,7 @@ export class CLI {
 
     public readonly args: Record<string, ( boolean | string | Array<string> )>;
 
-    public readonly rootPath: string;
-
-    public readonly system: typeof System;
+    public server?: Server;
 
 
     /* *
@@ -135,10 +138,11 @@ export class CLI {
 
     public async run (): Promise<void> {
         const args = this.args;
-        const system = this.system;
+
+        // Parse CLI arguments
 
         if ( args.help || args.h ) {
-            console.info( HELP.join( system.EOL ) );
+            console.info( HELP.join( System.EOL ) );
             return;
         }
 
@@ -149,39 +153,28 @@ export class CLI {
 
         if ( args.timeout ) {
             setTimeout(
-                () => process.exit(),
+                () => {
+                    Log.error( `Stop after ${args.timeout} seconds`, undefined, 'CLI.run' );
+                    process.exit();
+                },
                 parseInt( args.timeout.toString(), 10 ) * 1000
             );
         }
 
-        let rootPath = this.rootPath;
-
-        if ( !system.folderExists( rootPath ) ) {
-            throw new Error( `Folder not found. (${rootPath})` );
-        }
-
         const options: ServerOptions = {
-            rootPath
+            rootPath: './'
         };
 
         if ( args.cgi ) {
             options.cgiPath = ( typeof args.cgi === 'string' ? args.cgi : 'cgi-bin' );
         }
 
-        if ( args.http ) {
-            options.httpPort = parseInt( args.http.toString(), 10 );
-
-            if ( isNaN( options.httpPort ) ) {
-                options.httpPort = await ( Network.freePort( 8000 ) );
-            }
+        if ( args.http || !args.https ) {
+            options.httpPort = parseInt( `${args.http}`, 10 );
         }
 
         if ( args.https ) {
-            options.httpsPort = parseInt( args.https.toString(), 10 );
-
-            if ( isNaN( options.httpsPort ) ) {
-                options.httpsPort = await ( Network.freePort( 8080 ) );
-            }
+            options.httpsPort = parseInt( `${args.https}`, 10 );
         }
 
         if (
@@ -202,39 +195,72 @@ export class CLI {
                 options.httpsKey = System.fileContent( keyPath );
             }
         }
-        else if ( args.https ) {
-            const openSSL = new OpenSSL();
 
-            console.info( 'Generating HTTPS signature' );
-
-            try {
-                const signature = await openSSL.getSignature();
-
-                options.httpsKey = signature.key;
-                options.httpsCert = signature.cert;
-            }
-            catch ( e ) {
-                if ( e instanceof Error ) {
-                    console.error( e );
-                }
-                else {
-                    const result = e as ExecResult;
-
-                    console.info( result.stdout );
-                    console.error( result.stderr );
-                    console.error( result.error );
-                }
-                process.exit( 1 );
-            }
+        if ( typeof args.root === 'string' ) {
+            options.rootPath = args.root;
         }
 
         if ( args.typescript ) {
             options.typeScript = true;
         }
 
-        const server = await Server.create( options );
+        // Validate options
 
-        server.start();
+        if (
+            options.rootPath &&
+            !System.folderExists( options.rootPath )
+        ) {
+            Log.error( `Folder not found: ${options.rootPath}` );
+            process.exit( 1 );
+        }
+
+        if (
+            typeof options.httpPort === 'number' &&
+            isNaN( options.httpPort )
+        ) {
+            options.httpPort = await ( Network.freePort( 8000 ) );
+        }
+
+        if ( typeof options.httpsPort === 'number' ) {
+            if ( isNaN( options.httpsPort ) ) {
+                options.httpsPort = await ( Network.freePort( 8080 ) );
+            }
+
+            if (
+                !options.httpsCert ||
+                !options.httpsKey
+            ) {
+                const openSSL = new OpenSSL();
+
+                Log.error( 'Generating HTTPS signature' );
+
+                try {
+                    const signature = await openSSL.getSignature();
+
+                    options.httpsKey = signature.key;
+                    options.httpsCert = signature.cert;
+                }
+                catch ( e ) {
+                    if ( e instanceof Error ) {
+                        console.error( e );
+                    }
+                    else {
+                        const result = e as ExecResult;
+
+                        console.info( result.stdout );
+                        console.error( result.stderr );
+                        console.error( result.error );
+                    }
+                    process.exit( 1 );
+                }
+            }
+        }
+
+        // Start server
+
+        this.server = await Server.create( options );
+
+        await this.server.start();
     }
 
 

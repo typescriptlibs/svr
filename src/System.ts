@@ -74,6 +74,8 @@ const FSP = FS.promises;
 
 const PATH = joinPath( folderName( pathFromURL( import.meta.url ) ), '..' );
 
+const PID = process.pid;
+
 const SEPARATOR = Path.sep;
 
 const PACKAGE_VERSION = extractPackageVersion();
@@ -415,6 +417,7 @@ export const System = {
     CWD,
     EOL,
     PATH,
+    PID,
     SEPARATOR,
     PACKAGE_VERSION,
     args,

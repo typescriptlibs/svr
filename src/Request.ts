@@ -95,7 +95,30 @@ export class Request {
      * */
 
 
-    public body (): Promise<Buffer> {
+
+    public endResponse (
+        content: string
+    ): void {
+        const output = this.output;
+
+        output.setHeader( 'Content-Length', Buffer.byteLength( content ) );
+        output.end( content );
+    }
+
+
+    public errorResponse (
+        statusCode: number,
+        logError?: unknown,
+        logScope?: string
+    ): void {
+        const server = this.server;
+
+        server.log.error( logError || `HTTP Status ${statusCode}`, this.input, logScope );
+        server.errorHandler.handleRequest( this, statusCode );
+    }
+
+
+    public getBody (): Promise<Buffer> {
 
         if ( this._body ) {
             return Promise.resolve( this._body );
