@@ -75,7 +75,7 @@ export class ErrorHandler {
             '</head>',
             '<body>',
             `<center><h1>${title}</h1></center>`,
-            `<hr><center>svr/${System.PACKAGE_VERSION}</center>`,
+            `<hr><center>Svr/${System.PACKAGE_VERSION}</center>`,
             '</body>',
             '</html>'
         ].join( '\n' ) );
