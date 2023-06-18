@@ -1,2 +1,2 @@
-SVR is authored by:
+Svr is authored by:
 * Sophie Bremer

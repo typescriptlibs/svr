@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -135,7 +135,7 @@ export class CGIHandler {
             SERVER_NAME: url.hostname,
             SERVER_PORT: url.port,
             SERVER_PROTOCOL: 'HTTP/1.1',
-            SERVER_SOFTWARE: `SVR/${System.PACKAGE_VERSION}`
+            SERVER_SOFTWARE: `Svr/${System.PACKAGE_VERSION}`
         };
 
         // Add HTTP header as environment variables

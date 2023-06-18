@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -63,7 +63,7 @@ export class OpenSSL {
         options: Partial<OpenSSLOptions> = {}
     ) {
         this.options = {
-            division: 'SVR',
+            division: 'Svr',
             organisation: 'TypeScriptLibs',
             ...options
         };

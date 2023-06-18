@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -20,7 +20,7 @@
 
 import type CGIHandler from './CGIHandler.js';
 
-import type TypeScriptHandler from './TypeScriptHandler.js';
+import type TSHandler from './TSHandler.js';
 
 import ErrorHandler from './ErrorHandler.js';
 
@@ -46,7 +46,7 @@ import Request from './Request.js';
 
 export interface ServerHandlers {
     CGIHandler?: typeof CGIHandler;
-    TypeScriptHandler?: typeof TypeScriptHandler;
+    TSHandler?: typeof TSHandler;
 }
 
 export type ServerInput = HTTP.IncomingMessage;
@@ -58,7 +58,7 @@ export interface ServerOptions {
     httpsKey?: string;
     httpsPort?: number;
     rootPath?: string;
-    typeScript?: boolean;
+    ts?: boolean;
 }
 
 export type ServerOutput = HTTP.ServerResponse;
@@ -89,8 +89,8 @@ export class Server {
             serverHandlers.CGIHandler = ( await import( './CGIHandler.js' ) ).default;
         }
 
-        if ( typeof options.typeScript === 'string' ) {
-            serverHandlers.TypeScriptHandler = ( await import( './TypeScriptHandler.js' ) ).default;
+        if ( typeof options.ts === 'string' ) {
+            serverHandlers.TSHandler = ( await import( './TSHandler.js' ) ).default;
         }
 
         return new Server( options, serverHandlers );
@@ -163,7 +163,7 @@ export class Server {
 
     public readonly options: ServerOptions;
 
-    public typeScriptHandler?: TypeScriptHandler;
+    public typeScriptHandler?: TSHandler;
 
 
     /* *
@@ -181,8 +181,8 @@ export class Server {
             this.cgiHandler = new serverHandlers.CGIHandler( this );
         }
 
-        if ( serverHandlers?.TypeScriptHandler ) {
-            this.typeScriptHandler = new serverHandlers.TypeScriptHandler( this );
+        if ( serverHandlers?.TSHandler ) {
+            this.typeScriptHandler = new serverHandlers.TSHandler( this );
         }
     }
 

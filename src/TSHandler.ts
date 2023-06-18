@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -36,7 +36,7 @@ import TypeScript from 'typescript';
  * */
 
 
-export class TypeScriptHandler {
+export class TSHandler {
 
 
     /* *
@@ -121,4 +121,4 @@ export class TypeScriptHandler {
  * */
 
 
-export default TypeScriptHandler;
+export default TSHandler;

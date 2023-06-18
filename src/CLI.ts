@@ -1,6 +1,6 @@
 /*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*!*\
 
-  SVR: Simple HTTP(S) Server
+  Svr: Simple HTTP(S) Server
 
   Copyright (c) TypeScriptLibs and Contributors
 
@@ -39,37 +39,40 @@ import System, { ExecResult } from './System.js';
 export const VERSION = `Version ${System.PACKAGE_VERSION}`;
 
 export const HELP = [
-    `SVR: Simple HTTP(S) Server - ${VERSION}`,
+    `Svr: Simple HTTP(S) Server - ${VERSION}`,
     '',
     `svr [options]`,
     '',
     'OPTIONS:',
     '',
-    '  --cgi [path]         Activates CGI path for web browsers.',
+    '  --cgi [path]        Activates CGI path for web browsers.',
     '',
-    '  --help, -h           Prints only this help text.',
+    '  --help, -h          Prints only this help text.',
     '',
-    '  --http [port]        Activates HTTP port. Port number is optional.',
+    '  --http [port]       Activates HTTP port. Port number is optional.',
     '',
-    '  --https [port]       Activates HTTPS port. Port number is optional.',
+    '  --https [port]      Activates HTTPS port. Port number is optional. Without',
+    '                      httpsCert and httpsKey a sels-signed certificate will be',
+    '                      created instead (requires OpenSSL).',
     '',
-    '  --https-cert [file]  File path to the HTTPS certificate. Optional.',
+    '  --httpsCert [file]  File path to the HTTPS certificate.',
     '',
-    '  --https-key [file]   File path to the HTTPS key. Optional.',
+    '  --httpsKey [file]   File path to the HTTPS key.',
     '',
-    '  --root [folder]      Root folder with files for web browsers.',
+    '  --root [folder]     Root folder with files for web browsers.',
     '',
-    '  --timeout [seconds]  Stops the server after the given amount of seconds.',
+    '  --stop [seconds]    Stops the server after the given amount of seconds.',
     '',
-    '  --typescript         Activates transpile of TypeScript files for missing',
-    '                       JavaScript files.',
+    '  --ts                Activates transpiling of TypeScript files for missing',
+    '                      JavaScript files.',
     '',
-    '  --version, -v        Prints only the version string.',
+    '  --version, -v       Prints only the version string.',
     '',
     'EXAMPLES:',
     '',
     '  npx svr',
-    '  Starts the server and delivers files from the current folder to web browsers.',
+    '  Starts the HTTP server and delivers files from the current folder to web',
+    '  browsers.',
 ];
 
 
@@ -151,13 +154,14 @@ export class CLI {
             return;
         }
 
-        if ( args.timeout ) {
+        if ( args.stop ) {
+            const seconds = parseInt( `${args.stop}`, 10 );
             setTimeout(
                 () => {
-                    Log.error( `Stop after ${args.timeout} seconds`, undefined, 'CLI.run' );
+                    Log.error( `Stop after ${seconds} seconds`, undefined, 'CLI.run' );
                     process.exit();
                 },
-                parseInt( args.timeout.toString(), 10 ) * 1000
+                seconds * 1000
             );
         }
 
@@ -201,7 +205,7 @@ export class CLI {
         }
 
         if ( args.typescript ) {
-            options.typeScript = true;
+            options.ts = true;
         }
 
         // Validate options
