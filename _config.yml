@@ -29,13 +29,13 @@ plugins:
   - jekyll-seo-tag
   - jekyll-titles-from-headings
 
-show_excerpts: false
-
-theme: minima
+remote_theme: jekyll/minima
 
 minima:
   date_format: "%Y-%m-%d"
-  skin: classic
+  skin: auto
+
+show_excerpts: false
 
 titles_from_headings:
   enabled: true
