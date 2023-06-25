@@ -43,7 +43,7 @@
         "build": "npm run clean && tsc -p src/tsconfig.json",
         "clean": "rm -rf lib/ tst-run/",
         "test": "npm run build && npm run test:prepare && sleep 10 && npm run test:run && npm run test:cleanup",
-        "test:cleanup": "kill $(lsof -t -i:9876)",
+        "test:cleanup": "pkill -9 -f 'node bin/svr.mjs --cgi --https 9876 --root 'tst/svr-files' --stop 60'",
         "test:prepare": "npm run test:svr &",
         "test:run": "NODE_TLS_REJECT_UNAUTHORIZED=0 tst --reset --verbose tst/",
         "test:svr": "node bin/svr.mjs --cgi --https 9876 --root 'tst/svr-files' --stop 60",
