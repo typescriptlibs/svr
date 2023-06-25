@@ -18,6 +18,7 @@ export interface NetworkError extends Error {
     port: number;
     syscall: string;
 }
+export type NetworkSocket = Net.Socket;
 declare function connect(port: number, host?: string): Promise<Net.Socket>;
 declare function freePort(firstPort?: number, lastPort?: number, host?: string): Promise<number>;
 declare function usedPort(port: number, host?: string): Promise<boolean>;

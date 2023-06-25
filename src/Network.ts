@@ -37,6 +37,9 @@ export interface NetworkError extends Error {
 }
 
 
+export type NetworkSocket = Net.Socket;
+
+
 /* *
  *
  *  Functions
