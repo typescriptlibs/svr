@@ -18,6 +18,8 @@
  * */
 
 
+import { NetworkSocket } from './Network.js';
+
 import Server, { ServerInput, ServerOutput } from './Server.js';
 
 import System from './System.js';
@@ -78,9 +80,9 @@ export class Log {
         args.push( `[pid ${System.PID}]`, );
 
         if ( input ) {
-            const socket = input.socket;
+            const socket: ( NetworkSocket | undefined ) = input.socket;
 
-            if ( socket.remoteAddress ) {
+            if ( socket?.remoteAddress ) {
                 args.push( `[client ${socket.remoteAddress}:${socket.remotePort}]` );
             }
         }
