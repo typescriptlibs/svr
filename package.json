@@ -10,7 +10,7 @@
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
     "bugs": "https://github.com/typescriptlibs/svr/issues",
-    "homepage": "https://typescriptlibs.org/svr/",
+    "homepage": "https://typescriptlibs.eu/svr/",
     "repository": "https://github.com/typescriptlibs/svr.git",
     "devDependencies": {
         "@types/node": "~18.6.0",
